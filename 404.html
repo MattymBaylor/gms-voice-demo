@@ -50,6 +50,8 @@
   .num{flex:none;width:24px;height:24px;border-radius:7px;background:var(--panel-2);
     border:1px solid var(--line);display:grid;place-items:center;
     font-size:12px;font-weight:700;color:var(--accent-2);margin-top:1px}
+  .panels{display:grid;grid-template-columns:1fr 1fr;gap:26px}
+  @media (max-width:1040px){.panels{grid-template-columns:1fr;gap:20px}}
   .stack{border-top:1px solid var(--line);padding-top:22px;margin-top:4px}
   .stack-label{font-size:11px;text-transform:uppercase;letter-spacing:.13em;color:var(--muted);margin-bottom:11px;font-weight:700}
   .chips{display:flex;flex-wrap:wrap;gap:7px}
@@ -152,22 +154,46 @@
         <li><span class="num">3</span><span>Push back on her. Say you want to cancel, say you don't remember booking, say the price scares you.</span></li>
       </ol>
 
-      <div class="stack">
-        <div class="stack-label">What's running underneath</div>
-        <div class="chips">
-          <span class="chip">n8n orchestration</span>
-          <span class="chip">GPT-4.1</span>
-          <span class="chip">Live variable injection</span>
-          <span class="chip">Objection policy</span>
-          <span class="chip">Handoff triggers</span>
-          <span class="chip">Rate limiting</span>
+      <div class="panels">
+        <div class="stack">
+          <div class="stack-label">What's running underneath</div>
+          <div class="chips">
+            <span class="chip">n8n orchestration</span>
+            <span class="chip">GPT-4.1</span>
+            <span class="chip">Live variable injection</span>
+            <span class="chip">Objection policy</span>
+            <span class="chip">Handoff triggers</span>
+            <span class="chip">Rate limiting</span>
+          </div>
         </div>
-        <p class="hint" style="margin-top:14px">
-          The production build of this agent runs over real telephony with a dedicated number,
-          call recording, transcripts and post-call analysis. This page is the same brain,
-          running in your browser so you can try it in ten seconds.
-        </p>
+
+        <div class="stack">
+          <div class="stack-label">Deploys on your stack</div>
+          <div class="chips">
+            <span class="chip">Retell AI</span>
+            <span class="chip">Vapi</span>
+            <span class="chip">Bland</span>
+            <span class="chip">LiveKit</span>
+            <span class="chip">Twilio</span>
+            <span class="chip">Telnyx</span>
+            <span class="chip">ElevenLabs</span>
+            <span class="chip">xAI Grok Voice</span>
+            <span class="chip">OpenAI Realtime</span>
+            <span class="chip">Deepgram</span>
+          </div>
+          <p class="hint" style="margin-top:12px">
+            The agent's brain — prompt, objection policy, handoff rules, variable injection —
+            lives in the orchestration layer, not the vendor. Already on a platform? I build
+            into it. Not yet? I'll recommend one and you keep the account.
+          </p>
+        </div>
       </div>
+
+      <p class="hint" style="margin-top:18px">
+        The production build runs over real telephony with a dedicated number, call recording,
+        transcripts and post-call analysis. This page is the same brain, running in your browser
+        so you can try it in ten seconds.
+      </p>
     </section>
 
     <section>
