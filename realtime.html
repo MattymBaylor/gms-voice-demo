@@ -1292,7 +1292,7 @@ calendarBlock(),
 
   // The company they typed in to hear her say it out loud is the highest-intent
   // signal this page produces. Carry it into the form instead of making them
-  // type it a second time — the ask right after the call is the whole point.
+  // type it a second time - the ask right after the call is the whole point.
   function ctaHref(){
     var co = "";
     try { co = ((document.getElementById("companyName")||{}).value || "").trim(); } catch(e){}
@@ -1306,7 +1306,6 @@ calendarBlock(),
     var b=$("ctaBtn");
     if (b){
       b.setAttribute("href", ctaHref());
-      // Recompute on the way out so it always reflects what is in the field now.
       b.addEventListener("click", function(){ b.setAttribute("href", ctaHref()); });
     }
     var again=$("againLink");

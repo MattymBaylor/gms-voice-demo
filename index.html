@@ -430,7 +430,7 @@
             <p id="ctaBody">Tell me about your business and I'll build you an actual call &mdash;
               your name, your market, the objections you actually get &mdash; and email it to you
               inside 24 hours.</p>
-            <a id="ctaBtn" href="#" rel="noopener">Get my agent demo</a>
+            <a id="ctaBtn" href="#" rel="noopener">Get My Free Demo</a>
             <p id="ctaAgain"><a href="#" id="againLink">or run this one again</a></p>
           </div>
 
@@ -525,7 +525,7 @@
 
   // Where the after-call CTA button goes. Change this one line to point it at
   // a booking link, a form, or a mailto - nothing else needs to move.
-  var CTA_URL   = "https://growthmindset.ai/pricing";
+  var CTA_URL   = "https://growthmindset.ai/#cta";
 
   // ── Christina's photo ────────────────────────────────────────────────
   // Inlined as a data URI by the build step so the image and the HTML can
@@ -1290,8 +1290,24 @@ calendarBlock(),
     agentBubble=null;
   }
 
+  // The company they typed in to hear her say it out loud is the highest-intent
+  // signal this page produces. Carry it into the form instead of making them
+  // type it a second time - the ask right after the call is the whole point.
+  function ctaHref(){
+    var co = "";
+    try { co = ((document.getElementById("companyName")||{}).value || "").trim(); } catch(e){}
+    if (!co) return CTA_URL;
+    var base = CTA_URL, hash = "", i = CTA_URL.indexOf("#");
+    if (i > -1){ base = CTA_URL.slice(0, i); hash = CTA_URL.slice(i); }
+    return base + (base.indexOf("?") < 0 ? "?" : "&") + "business=" + encodeURIComponent(co) + hash;
+  }
+
   (function wireCta() {
-    var b=$("ctaBtn"); if (b) b.setAttribute("href", CTA_URL);
+    var b=$("ctaBtn");
+    if (b){
+      b.setAttribute("href", ctaHref());
+      b.addEventListener("click", function(){ b.setAttribute("href", ctaHref()); });
+    }
     var again=$("againLink");
     if (again) again.addEventListener("click", function (e) {
       e.preventDefault();
