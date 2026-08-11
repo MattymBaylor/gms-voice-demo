@@ -573,12 +573,16 @@
      She says "let me get you to the appropriate person", and the caller hears
      an actual ringback under it before she explains what would have happened.
      Promising a transfer into silence was the single worst moment in the demo. */
-  var transferPlayed = false, pendingExplain = false, toneEndsAt = 0, agentTurn = "";
-  var HANDOFF_RE = /appropriate person|put you (?:on|through)|connect(?:ing)? you|transfer you|get you (?:over )?to (?:the|our|someone|somebody)|grab (?:someone|somebody)|hold on (?:one|a)|right person/i;
+  var transferPlayed = false, pendingExplain = false, toneEndsAt = 0, agentTurn = "", explainTimer = 0, handoffThisTurn = false;
+  // She is allowed to close a do-not-call and hang up. Without this the socket
+  // stayed open and she spoke again at the wrap-up, to someone she had just
+  // promised would never be called again.
+  var DNC_RE = /comes off (?:right now|the list)|nobody calls (?:it|you) again|off (?:our|the) list|sorry to have bothered you/i;
+  var HANDOFF_RE = /appropriate person|put you (?:on|through)|connect(?:ing)? you|transfer you|get you (?:over )?to (?:the|our|someone|somebody)|grab (?:someone|somebody)|hold on (?:one|a)|right person|un momento|momentito|comunicar|pasarle|le va a llamar/i;
 
   function playTransferTone() {
     var c = ensureCtx(); if (!c) return;
-    var t0 = c.currentTime + 0.55;
+    var t0 = Math.max(c.currentTime + 0.35, playHead + 0.15);
     toneEndsAt = t0 + 2.35;
     // US ringback is 440 + 480Hz. Two short bursts reads as a transfer without
     // eating the call clock.
@@ -590,33 +594,44 @@
       g.gain.exponentialRampToValueAtTime(0.0001, t0 + offset + 0.95);
       var bp = c.createBiquadFilter();
       bp.type = "bandpass"; bp.frequency.value = 460; bp.Q.value = 1.4;
-      g.connect(bp); bp.connect(c.destination);
+      // Through the same telephone colouring as her voice - a full-bandwidth
+      // ring against a 300-3400Hz line reads as a sound effect, not a call.
+      g.connect(bp); bp.connect(sinks && sinks.entry ? sinks.entry : c.destination);
       [440, 480].forEach(function (f) {
         var o = c.createOscillator();
         o.type = "sine"; o.frequency.value = f;
         o.connect(g);
         try { o.start(t0 + offset); o.stop(t0 + offset + 1.0); } catch (e) {}
+        playing.push(o);   // so barge-in stops the ring too
       });
     });
   }
 
   function maybeTransferTone(textSoFar) {
-    if (transferPlayed || ended) return;
-    if (!HANDOFF_RE.test(textSoFar)) return;
-    transferPlayed = true;
+    if (ended || !HANDOFF_RE.test(textSoFar)) return;
+    handoffThisTurn = true;          // a second handoff still gets an explanation
     pendingExplain = true;
+    if (transferPlayed) return;      // but only one ring per call
+    transferPlayed = true;
     playTransferTone();
   }
 
   // server_vad only generates a response after the CALLER speaks. She ends her
   // turn on "one moment", so without this the hold tone is followed by silence
   // until the caller says hello - which is the exact bug this was meant to fix.
+  // She already said it herself this turn - injecting again would make her
+  // repeat, which the prompt forbids.
+  var EXPLAINED_RE = /nobody (?:actually )?waiting|rings straight through|connects straight through|nadie (?:esta|est\u00e1) esperando/i;
+
   function explainAfterTone() {
     if (!pendingExplain || ended) return;
     pendingExplain = false;
+    if (EXPLAINED_RE.test(agentTurn)) return;
     var c = actx, wait = 900;
     if (c) wait = Math.max(400, Math.round((toneEndsAt - c.currentTime) * 1000) + 300);
-    setTimeout(function () {
+    clearTimeout(explainTimer);
+    explainTimer = setTimeout(function () {
+      explainTimer = 0;
       if (ended || !ws || ws.readyState !== 1) return;
       try {
         ws.send(JSON.stringify({ type: "response.create", response: { instructions:
@@ -728,6 +743,7 @@
 "ONE OBJECTION ATTEMPT ONLY",
 "You get exactly ONE rebuttal per objection, and you must USE the matching one below rather than inventing a different one. After that single attempt, stop selling. Never repeat an explanation you already gave. If they push back a second time, move to booking a different day or route them.",
 "Whenever you offer a different time, offer two concrete options - something like tomorrow morning or Thursday afternoon. Never ask the open question of when is good for you, because it stalls the call.",
+"When they take one of those times, say it back to them once so it is on the record - so that is Thursday afternoon instead of Wednesday - tell them the office confirms it by email, and then ask the homeowners question. Do not claim it is locked in on a calendar; the office does that part.",
 "",
 "THE OBJECTIONS YOU WILL ACTUALLY GET",
 "1. A hard conflict on that day - a doctor appointment, work, out of town, kids, a funeral. Never argue with it and never ask them to move the conflict. Sympathise in four words, then hand them a slot. Sounds like: Oh no, I am sorry to hear that. Tell you what, we have an opening tomorrow morning - would that be easier?",
@@ -739,7 +755,7 @@
 "7. Now is a bad time, I am busy, call me later. Be quick or get out of their hair. Offer two specific times rather than asking when is good.",
 "8. I am not interested. Ask one light question about what changed since they filled out the form, take the answer at face value, and let it go.",
 "9. How long does it take, or do I have to be there. Most estimates run under an hour. Someone does need to be home, and everyone on the deed should be there so a decision can actually get made.",
-"10. Are you licensed, are you insured, what is your license number. Never answer this with I do not have that in front of me - that answer ends the call. Say we are licensed and insured, that the license and the certificate of insurance go out by email with the confirmation so they have it in writing before anyone is on the property, and then get back to the time. Do not recite a license number - you do not have one in front of you and you must not invent one.",
+"10. Are you licensed, are you insured, what is your license number. Never answer this with I do not have that in front of me - that answer ends the call. Say we are licensed and insured and that the office sends the license and the insurance certificate over with the confirmation, so they have it in writing before anyone is on their property. Two sentences, then straight back to the time. Do not recite a license number - you do not have one in front of you and you must not invent one.",
 "11. It can wait, we will do it later, it is not that bad yet. Point out that doing it on their own schedule is the cheaper version of the same job, because an emergency call costs more and they get whoever is available.",
 "",
 "WHEN THEY THROW SOMETHING NOT ON THAT LIST",
@@ -770,16 +786,15 @@
 "You route ONCE per call. If a second thing comes up that you cannot answer, say it goes on the note for the office and ask your remaining question. Routing twice in one call is a failed call.",
 "Do not use the word demo more than once in a call, and never as your opening. To the homeowner you are simply on a line where nobody is waiting to pick up.",
 "Vary the wording every time. Never use the word transfer as a promise - you may describe a transfer as something the real system does, you may not offer one.",
-"If they ask for a person again after you have explained it, do not repeat yourself. One line - there is genuinely nobody for me to put you through to on a demo line - and then the one question you still need answered.",
+"If they ask for a person again after you have explained it, do not repeat yourself. One line - there is honestly nobody for me to put you through to on this line - and then the one question you still need answered.",
 "",
 "STOP SELLING IMMEDIATELY - no rebuttal, no questions, no exceptions",
 "If they say any of these, drop every objection attempt and go into the handoff above on your very next sentence:",
 "- just cancel, or I want to cancel, with no reason given",
 "- asking for a human, a real person, a manager, or a supervisor",
-"- take me off your list, stop calling, do not call me again",
 "- profanity, or an explicit demand that you stop, or that you get a manager or an owner",
 "Irritation on its own is NOT a routing trigger. Somebody annoyed is still somebody you can help - give them the one matching answer below, calmly, and route only if they push again after it.",
-"On a do not call request there is no rebuttal and no one more question. Say it plainly - absolutely, the number comes off right now and nobody calls it again, sorry to have bothered you - and let them go. That is the one time you may end the call rather than keep it alive.",
+"A do not call request is different again - it is not a routing situation. If they say take me off your list, stop calling, or do not call me again, there is no rebuttal and no one more question. Say it plainly - absolutely, the number comes off right now and nobody calls it again, sorry to have bothered you - and let them go. That is the one time you may end the call rather than keep it alive.",
 "If they ask whether the call is recorded, do not dodge and do not guess. Say you do not have that in front of you, and offer the handoff.",
 "",
 "WHAT YOU CANNOT KNOW - THIS MATTERS MORE THAN SOUNDING CLEVER",
@@ -807,6 +822,7 @@
     callStarted = Date.now();
     wrapSent = false;
     transferPlayed = false; pendingExplain = false; toneEndsAt = 0; agentTurn = "";
+    handoffThisTurn = false; clearTimeout(explainTimer); explainTimer = 0;
     clearInterval(callTimer);
     callTimer = setInterval(function () {
       if (ended) { clearInterval(callTimer); return; }
@@ -948,14 +964,18 @@
         transcript.scrollTop=transcript.scrollHeight;
         return;
       }
-      if (t==="response.output_audio_transcript.done"){ agentBubble=null; agentTurn=""; return; }
+      if (t==="response.output_audio_transcript.done"){ agentBubble=null; handoffThisTurn=false; agentTurn=""; return; }
       if (t==="response.done"){
         agentBubble=null; speaking=false;
         setState("<b>Listening…</b> just talk","listening");
         if (pendingExplain) explainAfterTone();
+        if (DNC_RE.test(agentTurn)) { finishCall("They asked not to be called again, so she ended the call."); }
         return;
       }
       if (t==="input_audio_buffer.speech_started"){
+        // The caller talked over the hold tone. Injecting the explanation now
+        // would collide with the VAD-generated response and error the socket.
+        if (explainTimer) { clearTimeout(explainTimer); explainTimer = 0; pendingExplain = false; }
         stopPlayback();
         setState("<b>Listening…</b>","listening");
         return;
