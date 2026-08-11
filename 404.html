@@ -362,7 +362,7 @@
   // ── Christina's photo ────────────────────────────────────────────────
   // Drop an image in the repo (e.g. christina.jpg) and put its name here,
   // or paste a full https:// URL. Leave "" to keep the emoji placeholder.
-  var AGENT_PHOTO = "";
+  var AGENT_PHOTO = "christina.jpg";
   // ─────────────────────────────────────────────────────────────────────
 
   var $ = function (id) { return document.getElementById(id); };
@@ -638,8 +638,19 @@
     if (!(digits.length === 10 || (digits.length === 11 && digits.charAt(0) === "1"))) {
       show("err", "Enter a valid 10-digit US mobile number."); return;
     }
+    // Any path where the phone call doesn't happen lands here: no scary error,
+    // just the browser conversation offered as the thing to do next.
+    function offerBrowser(note) {
+      show("warn", note);
+      $("browserFallback").style.display = "grid";
+    }
+
     btn.disabled = true; btn.textContent = "Placing your call…";
-    fetch(CALL_URL, {
+
+    var ctrl = window.AbortController ? new AbortController() : null;
+    var timer = setTimeout(function () { if (ctrl) ctrl.abort(); }, 20000);
+
+    var opts = {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -650,25 +661,28 @@
         appointmentTime: $("appointmentTime").value,
         address: $("address").value.trim()
       })
-    })
-      .then(function (r) { return r.json(); })
+    };
+    if (ctrl) opts.signal = ctrl.signal;
+
+    fetch(CALL_URL, opts)
+      .then(function (r) { return r.json().catch(function () { return null; }); })
       .then(function (d) {
+        clearTimeout(timer);
         btn.disabled = false; refreshCta();
+
         if (d && d.ok) {
           show("ok", "Calling " + (fmtPhone(digits) || "you") + " now — answer and you'll be talking to Christina.");
           return;
         }
-        if (d && d.code === "provider_error") {
-          show("warn", "Our phone line is briefly offline. You can still talk to her right here — same agent, same script.");
-          $("browserFallback").style.display = "grid";
-          return;
-        }
-        show("warn", (d && d.message) || "Couldn't place the call just now.");
+        // Guardrail rejections are the user's to fix (bad number, cooldown) — say so plainly.
+        if (d && d.status === "blocked") { show("warn", d.message); return; }
+
+        offerBrowser("Our phone line is briefly offline. You can still talk to her right here — same agent, same script, same objection handling.");
       })
       .catch(function () {
+        clearTimeout(timer);
         btn.disabled = false; refreshCta();
-        show("warn", "Couldn't reach the call service. You can still talk to her right here.");
-        $("browserFallback").style.display = "grid";
+        offerBrowser("Our phone line isn't reachable right now. You can still talk to her right here — same agent, same script.");
       });
   });
 })();
