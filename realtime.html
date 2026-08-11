@@ -546,20 +546,27 @@
     comp.threshold.value=-20; comp.ratio.value=4; comp.attack.value=0.004;
     var g=c.createGain(); g.gain.value=1.2;
     if (TELEPHONE_FX) { hp.connect(lp); lp.connect(pres); pres.connect(comp); comp.connect(g); }
+    else { comp.connect(g); }
     g.connect(c.destination);
 
-    var len=Math.floor(c.sampleRate*3);
-    var buf=c.createBuffer(1,len,c.sampleRate), d=buf.getChannelData(0);
-    var b0=0,b1=0,b2=0;
-    for (var i=0;i<len;i++){ var w=Math.random()*2-1;
-      b0=0.99765*b0+w*0.0990460; b1=0.96300*b1+w*0.2965164; b2=0.57000*b2+w*1.0526913;
-      d[i]=(b0+b1+b2+w*0.1848)*0.06; }
-    var bedSrc=c.createBufferSource(); bedSrc.buffer=buf; bedSrc.loop=true;
-    var bedBp=c.createBiquadFilter(); bedBp.type="bandpass"; bedBp.frequency.value=700; bedBp.Q.value=0.6;
-    var bedGain=c.createGain(); bedGain.gain.value=0.035;
-    bedSrc.connect(bedBp); bedBp.connect(bedGain); bedGain.connect(c.destination);
-    try { bedSrc.start(); } catch(e){}
-    return { entry: TELEPHONE_FX ? hp : g, bedSrc: bedSrc };
+    // The pink-noise room bed belongs to the telephone path only. It used to
+    // start regardless of the flag, so turning the phone colour off still left
+    // you listening to a room.
+    var bedSrc = null;
+    if (TELEPHONE_FX) {
+      var len=Math.floor(c.sampleRate*3);
+      var buf=c.createBuffer(1,len,c.sampleRate), d=buf.getChannelData(0);
+      var b0=0,b1=0,b2=0;
+      for (var i=0;i<len;i++){ var w=Math.random()*2-1;
+        b0=0.99765*b0+w*0.0990460; b1=0.96300*b1+w*0.2965164; b2=0.57000*b2+w*1.0526913;
+        d[i]=(b0+b1+b2+w*0.1848)*0.06; }
+      bedSrc=c.createBufferSource(); bedSrc.buffer=buf; bedSrc.loop=true;
+      var bedBp=c.createBiquadFilter(); bedBp.type="bandpass"; bedBp.frequency.value=700; bedBp.Q.value=0.6;
+      var bedGain=c.createGain(); bedGain.gain.value=0.035;
+      bedSrc.connect(bedBp); bedBp.connect(bedGain); bedGain.connect(c.destination);
+      try { bedSrc.start(); } catch(e){}
+    }
+    return { entry: TELEPHONE_FX ? hp : comp, bedSrc: bedSrc };
   }
 
   function b64ToInt16(b64){
@@ -716,8 +723,33 @@
   }
 
   /* ---------- call ---------- */
+  var LIVE_URL = "https://mattymbaylor.github.io/gms-voice-demo/realtime.html";
+
+  // Says out loud where this page is actually running, so a failure caused by
+  // a saved copy or a sandboxed preview identifies itself immediately.
+  function whereAmI() {
+    var o;
+    try { o = window.location.origin; } catch (e) { o = null; }
+    if (!o || o === "null") o = window.location.protocol + "//(no origin)";
+    var framed = false;
+    try { framed = window.self !== window.top; } catch (e) { framed = true; }
+    return o + (framed ? " inside a frame" : "");
+  }
+
   function startCall() {
     hide();
+    // A saved copy, or a sandboxed preview, has no origin the token minter can
+    // trust. Catch it before the microphone prompt that could never work.
+    // Embed mode is exempt: it runs framed on an allowed origin by design.
+    var framedEmbed = document.body.classList.contains("embed");
+    var opaque = false;
+    try { opaque = (window.location.origin === "null"); } catch (e) { opaque = true; }
+    if (window.location.protocol !== "https:" || (opaque && !framedEmbed)) {
+      show("err","You're viewing a saved or previewed copy of this page (running at "
+               + whereAmI() + "), which can't start a call. Open the live version in a "
+               + "browser tab: " + LIVE_URL);
+      return;
+    }
     if (!window.WebSocket || !navigator.mediaDevices) {
       show("warn","This browser can't run the live voice demo. Chrome, Edge or Safari will.");
       return;
@@ -744,12 +776,31 @@
     fetch(TOKEN_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:"{}"})
       .then(function(r){ return r.json(); })
       .then(function(d){
-        if (!d||!d.ok||!d.token) throw new Error("no token");
-        openSocket(d.token, v);
+        if (d && d.ok && d.token) { openSocket(d.token, v); return; }
+        var e=new Error("denied"); e.info=d||{}; throw e;
       })
-      .catch(function(){
-        setState("Couldn't connect","");
-        bubble("agent","Sorry - I couldn't get a line out just now. Please try again in a moment.");
+      .catch(function(err){
+        // Come back to the form and say what actually happened, rather than
+        // putting words in her mouth about a line she never had.
+        callView.style.display="none";
+        setupView.style.display="block";
+        var d=(err&&err.info)||{}, kind="warn", text;
+        if (d.reason==="rate") {
+          var mins=Math.ceil((d.retry_in_seconds||60)/60);
+          text="You've had a few calls in a short window, so the demo is resting. "
+             + "Try again in about "+(mins>1?mins+" minutes":"a minute")+".";
+        } else if (d.reason==="daily") {
+          text="The demo has hit its daily cap. It resets at midnight UTC.";
+        } else if (d.reason==="origin") {
+          kind="err";
+          text="This page isn't authorised to start a call — it's running at "
+             + whereAmI() + ", which isn't the live address. Open " + LIVE_URL
+             + " in a browser tab instead.";
+        } else {
+          kind="err";
+          text="Couldn't reach the voice service just now. Give it a moment and try again.";
+        }
+        show(kind,text);
       });
   }
 
