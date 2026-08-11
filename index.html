@@ -4,17 +4,16 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Live AI Voice Agent Demo — Growth Mindset Solutions</title>
-<meta name="description" content="Fill out the form and an AI voice agent calls you back in about ten seconds. A live demo, not a recording." />
+<meta name="description" content="Talk to a real AI voice agent in your browser, or have it call your phone. Live demo, not a recording." />
 <meta property="og:title" content="Live AI Voice Agent Demo" />
-<meta property="og:description" content="Submit the form. An AI voice agent calls you in ~10 seconds. Live, not a recording." />
+<meta property="og:description" content="Talk to a real AI appointment-confirmation agent right in your browser. Live, not a recording." />
 <meta property="og:type" content="website" />
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%93%9E%3C/text%3E%3C/svg%3E" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8E%99%3C/text%3E%3C/svg%3E" />
 <style>
   :root{
     --bg:#080b14; --panel:#0e1424; --panel-2:#121a2e; --line:#1e2a44;
     --ink:#eef2fb; --muted:#8d9bb8; --accent:#3d7bfd; --accent-2:#5ce1b9;
-    --danger:#ff6b6b; --warn:#ffc46b;
-    --radius:14px;
+    --danger:#ff6b6b; --warn:#ffc46b; --radius:14px;
     --font:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,Helvetica,Arial,sans-serif;
   }
   *{box-sizing:border-box}
@@ -30,17 +29,13 @@
   .wrap{max-width:1080px;margin:0 auto;padding:28px 20px 72px}
   header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:44px;flex-wrap:wrap}
   .brand{display:flex;align-items:center;gap:11px;font-weight:700;letter-spacing:-.01em}
-  .brand-mark{
-    width:34px;height:34px;border-radius:9px;flex:none;
+  .brand-mark{width:34px;height:34px;border-radius:9px;flex:none;
     background:linear-gradient(135deg,var(--accent),var(--accent-2));
-    display:grid;place-items:center;color:#050a16;font-size:17px;font-weight:800;
-  }
+    display:grid;place-items:center;color:#050a16;font-size:17px;font-weight:800}
   .brand small{display:block;font-weight:500;font-size:11.5px;color:var(--muted);letter-spacing:.02em}
-  .live-badge{
-    display:inline-flex;align-items:center;gap:8px;font-size:12.5px;color:var(--accent-2);
+  .live-badge{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;color:var(--accent-2);
     border:1px solid rgba(92,225,185,.28);background:rgba(92,225,185,.07);
-    padding:6px 13px;border-radius:999px;font-weight:600;
-  }
+    padding:6px 13px;border-radius:999px;font-weight:600}
   .dot{width:7px;height:7px;border-radius:50%;background:var(--accent-2);animation:pulse 1.8s infinite}
   @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.8)}}
 
@@ -52,33 +47,27 @@
   .lede{font-size:1.1rem;color:var(--muted);margin:0 0 28px;max-width:30em}
   .steps{list-style:none;padding:0;margin:0 0 30px;display:grid;gap:13px}
   .steps li{display:flex;gap:13px;align-items:flex-start;font-size:.96rem;color:#c3cee5}
-  .num{
-    flex:none;width:24px;height:24px;border-radius:7px;background:var(--panel-2);
+  .num{flex:none;width:24px;height:24px;border-radius:7px;background:var(--panel-2);
     border:1px solid var(--line);display:grid;place-items:center;
-    font-size:12px;font-weight:700;color:var(--accent-2);margin-top:1px;
-  }
+    font-size:12px;font-weight:700;color:var(--accent-2);margin-top:1px}
   .stack{border-top:1px solid var(--line);padding-top:22px;margin-top:4px}
   .stack-label{font-size:11px;text-transform:uppercase;letter-spacing:.13em;color:var(--muted);margin-bottom:11px;font-weight:700}
   .chips{display:flex;flex-wrap:wrap;gap:7px}
   .chip{font-size:12px;color:#aebbd4;border:1px solid var(--line);background:var(--panel);padding:5px 11px;border-radius:7px}
 
-  .card{
-    background:linear-gradient(180deg,var(--panel),#0b1020);
+  .card{background:linear-gradient(180deg,var(--panel),#0b1020);
     border:1px solid var(--line);border-radius:var(--radius);
-    padding:30px;box-shadow:0 24px 70px -30px rgba(0,0,0,.9);
-  }
+    padding:30px;box-shadow:0 24px 70px -30px rgba(0,0,0,.9)}
   .card h2{margin:0 0 5px;font-size:1.22rem;letter-spacing:-.02em}
-  .card .sub{margin:0 0 24px;color:var(--muted);font-size:.9rem}
+  .card .sub{margin:0 0 22px;color:var(--muted);font-size:.9rem}
 
   label{display:block;font-size:12.5px;font-weight:600;color:#b7c3db;margin:0 0 6px;letter-spacing:.01em}
   .field{margin-bottom:16px}
   .row{display:grid;grid-template-columns:1fr 1fr;gap:13px}
   @media (max-width:520px){.row{grid-template-columns:1fr}}
-  input,select{
-    width:100%;padding:11px 13px;border-radius:10px;
+  input,select{width:100%;padding:11px 13px;border-radius:10px;
     background:#080d1a;border:1px solid var(--line);color:var(--ink);
-    font-size:15px;font-family:inherit;transition:border-color .15s,box-shadow .15s;
-  }
+    font-size:15px;font-family:inherit;transition:border-color .15s,box-shadow .15s}
   input::placeholder{color:#5d6b87}
   input:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(61,123,253,.16)}
   select{appearance:none;cursor:pointer;
@@ -86,46 +75,54 @@
     background-repeat:no-repeat;background-position:right 11px center;background-size:16px;padding-right:36px}
   .hint{font-size:11.5px;color:var(--muted);margin-top:6px}
 
-  button{
-    width:100%;padding:14px;border-radius:11px;border:0;cursor:pointer;
+  button{width:100%;padding:14px;border-radius:11px;border:0;cursor:pointer;
     background:linear-gradient(135deg,var(--accent),#2f6ae8);color:#fff;
     font-size:15.5px;font-weight:700;font-family:inherit;letter-spacing:-.01em;
-    margin-top:8px;transition:transform .12s,filter .15s;
-  }
+    transition:transform .12s,filter .15s}
   button:hover:not(:disabled){filter:brightness(1.1);transform:translateY(-1px)}
-  button:disabled{opacity:.55;cursor:not-allowed;transform:none}
-  .fineprint{font-size:11.5px;color:var(--muted);text-align:center;margin-top:14px;line-height:1.5}
+  button:disabled{opacity:.45;cursor:not-allowed;transform:none}
+  .btn-ghost{background:none;border:1px solid var(--line);color:#b7c3db}
+  .btn-ghost:hover:not(:disabled){filter:none;color:var(--ink);border-color:var(--accent)}
+  .btn-danger{background:linear-gradient(135deg,#e2564f,#c33f39)}
+  .btn-row{display:grid;gap:10px;margin-top:8px}
 
+  .fineprint{font-size:11.5px;color:var(--muted);text-align:center;margin-top:14px;line-height:1.5}
   .msg{margin-top:16px;padding:13px 15px;border-radius:10px;font-size:13.6px;display:none;line-height:1.5}
   .msg.show{display:block}
   .msg.err{background:rgba(255,107,107,.09);border:1px solid rgba(255,107,107,.3);color:#ffb3b3}
   .msg.warn{background:rgba(255,196,107,.09);border:1px solid rgba(255,196,107,.3);color:#ffd9a0}
+  .msg.ok{background:rgba(92,225,185,.08);border:1px solid rgba(92,225,185,.3);color:#a6f0d8}
 
-  .success{text-align:center;padding:14px 4px}
-  .ring{
-    width:76px;height:76px;border-radius:50%;margin:0 auto 20px;display:grid;place-items:center;
-    background:rgba(92,225,185,.1);border:2px solid rgba(92,225,185,.42);font-size:32px;
-    animation:ring 1.1s ease-in-out infinite;
-  }
-  @keyframes ring{0%,100%{transform:rotate(-9deg) scale(1)}50%{transform:rotate(9deg) scale(1.06)}}
-  .success h3{margin:0 0 9px;font-size:1.32rem;letter-spacing:-.02em}
-  .success p{margin:0 0 7px;color:var(--muted);font-size:.94rem}
-  .success .phone{color:var(--accent-2);font-weight:700;font-size:1.06rem;letter-spacing:.01em}
-  .timeline{
-    text-align:left;margin:24px 0 0;padding:17px 18px;background:#080d1a;
-    border:1px solid var(--line);border-radius:11px;
-  }
-  .timeline-label{font-size:10.5px;text-transform:uppercase;letter-spacing:.13em;color:var(--muted);margin-bottom:11px;font-weight:700}
-  .timeline ol{margin:0;padding-left:17px;font-size:12.8px;color:#a9b6cf;line-height:1.85}
-  .timeline code{color:var(--accent-2);font-size:11.8px;background:rgba(92,225,185,.08);padding:1px 5px;border-radius:4px}
-  .again{background:none;border:1px solid var(--line);color:var(--muted);margin-top:18px;font-weight:600;font-size:14px}
-  .again:hover{filter:none;color:var(--ink);border-color:var(--accent)}
+  /* call view */
+  .callhead{display:flex;align-items:center;gap:14px;margin-bottom:20px}
+  .avatar{width:52px;height:52px;border-radius:50%;flex:none;display:grid;place-items:center;
+    background:linear-gradient(135deg,rgba(61,123,253,.3),rgba(92,225,185,.3));
+    border:1px solid var(--line);font-size:22px}
+  .avatar.speaking{border-color:var(--accent-2);box-shadow:0 0 0 6px rgba(92,225,185,.10);animation:talk .9s ease-in-out infinite}
+  .avatar.listening{border-color:var(--accent);box-shadow:0 0 0 6px rgba(61,123,253,.12)}
+  @keyframes talk{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+  .callhead h3{margin:0;font-size:1.05rem;letter-spacing:-.01em}
+  .callhead .state{font-size:12.5px;color:var(--muted);margin-top:2px}
+  .callhead .state b{color:var(--accent-2);font-weight:600}
+
+  .transcript{background:#080d1a;border:1px solid var(--line);border-radius:11px;
+    padding:16px;height:290px;overflow-y:auto;display:flex;flex-direction:column;gap:11px}
+  .bubble{max-width:86%;padding:9px 13px;border-radius:12px;font-size:13.8px;line-height:1.5;white-space:pre-wrap}
+  .bubble.agent{align-self:flex-start;background:var(--panel-2);border:1px solid var(--line);border-bottom-left-radius:4px}
+  .bubble.you{align-self:flex-end;background:rgba(61,123,253,.16);border:1px solid rgba(61,123,253,.32);border-bottom-right-radius:4px}
+  .bubble.interim{opacity:.5;font-style:italic}
+  .empty{color:var(--muted);font-size:13px;text-align:center;margin:auto;max-width:24em}
+
+  .mic{width:100%;margin-top:14px;padding:15px;border-radius:11px;border:0;cursor:pointer;
+    font-size:15.5px;font-weight:700;font-family:inherit;color:#fff;
+    background:linear-gradient(135deg,var(--accent-2),#33b892);color:#04231a}
+  .mic.on{background:linear-gradient(135deg,#e2564f,#c33f39);color:#fff}
 
   footer{margin-top:56px;padding-top:22px;border-top:1px solid var(--line);
     display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--muted)}
-  footer a{color:var(--muted);text-decoration:none;border-bottom:1px solid var(--line)}
-  footer a:hover{color:var(--ink)}
-  .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+  .divider{display:flex;align-items:center;gap:12px;margin:20px 0 16px;color:var(--muted);font-size:11px;
+    text-transform:uppercase;letter-spacing:.13em;font-weight:700}
+  .divider:before,.divider:after{content:"";flex:1;height:1px;background:var(--line)}
 </style>
 </head>
 <body>
@@ -136,124 +133,127 @@
       <div class="brand-mark">G</div>
       <div>Growth Mindset Solutions<small>AI voice &amp; workflow automation</small></div>
     </div>
-    <div class="live-badge"><span class="dot"></span> Live demo — real call</div>
+    <div class="live-badge"><span class="dot"></span> Live agent — not a recording</div>
   </header>
 
   <div class="grid">
 
     <section>
-      <h1>Don't take my word for it.<br /><span class="grad">Let the agent call you.</span></h1>
+      <h1>Don't take my word for it.<br /><span class="grad">Talk to the agent.</span></h1>
       <p class="lede">
-        This is the same appointment-confirmation agent I build for home-services clients.
-        Fill in the form with any details you like — the agent will call you within seconds
-        and hold a real conversation using exactly what you typed.
+        This is a real appointment-confirmation agent — the same kind I build for home-services
+        companies. Fill in whatever details you like, then talk to her. She'll work from exactly
+        what you typed, handle your objections, and know when to stop selling and hand you off.
       </p>
 
       <ol class="steps">
-        <li><span class="num">1</span><span>You submit the form. Use made-up appointment details if you want — the agent adapts.</span></li>
-        <li><span class="num">2</span><span>The form posts to an n8n workflow that validates, rate-limits, and hands off to the voice platform.</span></li>
-        <li><span class="num">3</span><span>Your phone rings in roughly ten seconds. Interrupt her, push back, change the time — she handles it.</span></li>
+        <li><span class="num">1</span><span>Enter any appointment details. Made-up is fine — she adapts to whatever's there.</span></li>
+        <li><span class="num">2</span><span>Hit talk and allow your mic. She opens the call the way she would on a real dial-out.</span></li>
+        <li><span class="num">3</span><span>Push back on her. Say you want to cancel, say you don't remember booking, say the price scares you.</span></li>
       </ol>
 
       <div class="stack">
         <div class="stack-label">What's running underneath</div>
         <div class="chips">
-          <span class="chip">n8n</span>
-          <span class="chip">Retell AI</span>
-          <span class="chip">ElevenLabs voice</span>
+          <span class="chip">n8n orchestration</span>
           <span class="chip">GPT-4.1</span>
-          <span class="chip">Webhook orchestration</span>
+          <span class="chip">Live variable injection</span>
+          <span class="chip">Objection policy</span>
+          <span class="chip">Handoff triggers</span>
           <span class="chip">Rate limiting</span>
-          <span class="chip">Post-call analysis</span>
         </div>
+        <p class="hint" style="margin-top:14px">
+          The production build of this agent runs over real telephony with a dedicated number,
+          call recording, transcripts and post-call analysis. This page is the same brain,
+          running in your browser so you can try it in ten seconds.
+        </p>
       </div>
     </section>
 
     <section>
-      <div class="card" id="card">
+      <div class="card">
 
-        <div id="formView">
-          <h2>Get a call from the agent</h2>
-          <p class="sub">US numbers only. One call per number every 30 minutes.</p>
+        <!-- SETUP -->
+        <div id="setupView">
+          <h2>Set up the call</h2>
+          <p class="sub">These become the live variables the agent speaks from.</p>
 
-          <form id="demoForm" novalidate>
-            <div class="row">
-              <div class="field">
-                <label for="firstName">First name</label>
-                <input id="firstName" name="firstName" type="text" placeholder="Alex" autocomplete="given-name" required />
-              </div>
-              <div class="field">
-                <label for="phone">Mobile number</label>
-                <input id="phone" name="phone" type="tel" placeholder="(216) 555-0142" autocomplete="tel" required />
-              </div>
-            </div>
+          <div class="field">
+            <label for="firstName">Your first name</label>
+            <input id="firstName" type="text" placeholder="Alex" autocomplete="given-name" />
+          </div>
 
+          <div class="field">
+            <label for="service">Service being confirmed</label>
+            <select id="service">
+              <option>Roofing</option>
+              <option>Siding</option>
+              <option selected>Gutters</option>
+              <option>Window Installation</option>
+              <option>Exterior Doors</option>
+              <option>Attic Insulation</option>
+            </select>
+          </div>
+
+          <div class="row">
             <div class="field">
-              <label for="email">Email <span style="color:#5d6b87;font-weight:500">— optional</span></label>
-              <input id="email" name="email" type="email" placeholder="you@company.com" autocomplete="email" />
+              <label for="appointmentDate">Appointment date</label>
+              <select id="appointmentDate"></select>
             </div>
-
             <div class="field">
-              <label for="service">Service being confirmed</label>
-              <select id="service" name="service">
-                <option>Roofing</option>
-                <option>Siding</option>
-                <option>Gutters</option>
-                <option>Window Installation</option>
-                <option>Exterior Doors</option>
-                <option>Attic Insulation</option>
+              <label for="appointmentTime">Appointment time</label>
+              <select id="appointmentTime">
+                <option>10:00 AM</option>
+                <option selected>2:00 PM</option>
+                <option>4:00 PM</option>
+                <option>6:00 PM</option>
               </select>
             </div>
+          </div>
 
-            <div class="row">
-              <div class="field">
-                <label for="appointmentDate">Appointment date</label>
-                <select id="appointmentDate" name="appointmentDate"></select>
-              </div>
-              <div class="field">
-                <label for="appointmentTime">Appointment time</label>
-                <select id="appointmentTime" name="appointmentTime">
-                  <option>10:00 AM</option>
-                  <option selected>2:00 PM</option>
-                  <option>4:00 PM</option>
-                  <option>6:00 PM</option>
-                </select>
-              </div>
-            </div>
+          <div class="field">
+            <label for="address">Service address</label>
+            <input id="address" type="text" placeholder="2200 Main Street" autocomplete="street-address" />
+          </div>
 
-            <div class="field">
-              <label for="address">Service address <span style="color:#5d6b87;font-weight:500">— optional</span></label>
-              <input id="address" name="address" type="text" placeholder="2200 Main St" autocomplete="street-address" />
-              <div class="hint">The agent reads this back to you on the call.</div>
-            </div>
+          <div class="btn-row">
+            <button type="button" id="startBtn">🎙️ Talk to the agent now</button>
+          </div>
+          <div class="fineprint">Runs in your browser. Nothing is recorded, nothing is stored.</div>
 
-            <button type="submit" id="submitBtn">Call me now</button>
-            <div class="fineprint">
-              One call, placed immediately. Your number is used for this demo call only —
-              not stored for marketing, not sold, not added to a list.
-            </div>
-            <div class="msg" id="msg" role="alert"></div>
-          </form>
+          <div class="divider">or</div>
+
+          <div class="field">
+            <label for="phone">Have her call your phone instead</label>
+            <input id="phone" type="tel" placeholder="(216) 555-0142" autocomplete="tel" />
+            <div class="hint">US numbers. One call per number every 30 minutes.</div>
+          </div>
+          <div class="btn-row">
+            <button type="button" class="btn-ghost" id="callBtn">📞 Call my phone</button>
+          </div>
+
+          <div class="msg" id="msg" role="alert"></div>
         </div>
 
-        <div id="successView" style="display:none">
-          <div class="success">
-            <div class="ring">📞</div>
-            <h3>Calling you now</h3>
-            <p>Answer and you'll be talking to the agent.</p>
-            <p class="phone" id="calledNumber"></p>
-            <div class="timeline">
-              <div class="timeline-label">What just happened</div>
-              <ol>
-                <li>Form posted to <code>n8n</code> webhook</li>
-                <li>Payload validated + rate-limit checked</li>
-                <li>Your details injected as live variables</li>
-                <li>Outbound call placed via <code>Retell</code></li>
-                <li>Transcript &amp; outcome logged post-call</li>
-              </ol>
+        <!-- CALL -->
+        <div id="callView" style="display:none">
+          <div class="callhead">
+            <div class="avatar" id="avatar">👩</div>
+            <div>
+              <h3>Christina</h3>
+              <div class="state" id="stateLine">Connecting…</div>
             </div>
-            <button class="again" id="againBtn" type="button">Run it again</button>
           </div>
+
+          <div class="transcript" id="transcript">
+            <div class="empty" id="emptyNote">The agent will speak first. When she pauses, tap the button below and answer.</div>
+          </div>
+
+          <button type="button" class="mic" id="micBtn" disabled>Hold on…</button>
+          <div class="btn-row" style="margin-top:10px">
+            <button type="button" class="btn-ghost" id="endBtn">End call</button>
+          </div>
+          <div class="fineprint" id="callNote"></div>
         </div>
 
       </div>
@@ -262,7 +262,7 @@
 
   <footer>
     <div>Growth Mindset Solutions — built by Matt Martelli</div>
-    <div>Demo environment. Calls are rate-limited and capped daily.</div>
+    <div>Demo environment. Rate-limited and capped daily.</div>
   </footer>
 </div>
 
@@ -270,17 +270,21 @@
 (function () {
   "use strict";
 
-  var WEBHOOK = "https://n8n.growthmindsetai.tech/webhook/gms-voice-demo";
+  var CHAT_URL = "https://n8n.growthmindsetai.tech/webhook/gms-demo-chat";
+  var CALL_URL = "https://n8n.growthmindsetai.tech/webhook/gms-voice-demo";
 
-  var form = document.getElementById("demoForm");
-  var btn = document.getElementById("submitBtn");
-  var msg = document.getElementById("msg");
-  var formView = document.getElementById("formView");
-  var successView = document.getElementById("successView");
-  var calledNumber = document.getElementById("calledNumber");
-  var dateSel = document.getElementById("appointmentDate");
+  var $ = function (id) { return document.getElementById(id); };
+  var setupView = $("setupView"), callView = $("callView");
+  var msg = $("msg"), transcript = $("transcript"), emptyNote = $("emptyNote");
+  var micBtn = $("micBtn"), stateLine = $("stateLine"), avatar = $("avatar");
+  var dateSel = $("appointmentDate");
 
-  // Build the next 7 days so the demo never shows stale dates.
+  var history = [];
+  var vars = {};
+  var recog = null, listening = false, busy = false, ended = false;
+  var voice = null;
+
+  /* ---------- dates ---------- */
   (function buildDates() {
     var days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
     var months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
@@ -290,93 +294,238 @@
       return n + (r === 1 ? "st" : r === 2 ? "nd" : r === 3 ? "rd" : "th");
     }
     for (var i = 1; i <= 7; i++) {
-      var d = new Date();
-      d.setDate(d.getDate() + i);
+      var d = new Date(); d.setDate(d.getDate() + i);
       var label = days[d.getDay()] + ", " + months[d.getMonth()] + " " + ord(d.getDate());
-      var opt = document.createElement("option");
-      opt.value = label;
-      opt.textContent = (i === 1 ? "Tomorrow — " : "") + label;
-      dateSel.appendChild(opt);
+      var o = document.createElement("option");
+      o.value = label; o.textContent = (i === 1 ? "Tomorrow — " : "") + label;
+      dateSel.appendChild(o);
     }
   })();
 
-  function show(kind, text) {
-    msg.className = "msg show " + kind;
-    msg.textContent = text;
+  /* ---------- voice pick ---------- */
+  function pickVoice() {
+    var vs = window.speechSynthesis ? window.speechSynthesis.getVoices() : [];
+    if (!vs.length) return null;
+    var prefer = ["Samantha","Ava","Allison","Susan","Karen","Google US English","Microsoft Aria Online","Microsoft Jenny Online","Zira"];
+    for (var p = 0; p < prefer.length; p++) {
+      for (var i = 0; i < vs.length; i++) {
+        if (vs[i].name.indexOf(prefer[p]) !== -1) return vs[i];
+      }
+    }
+    for (var j = 0; j < vs.length; j++) {
+      if (/^en[-_]US/i.test(vs[j].lang)) return vs[j];
+    }
+    return vs[0];
   }
+  if (window.speechSynthesis) {
+    voice = pickVoice();
+    window.speechSynthesis.onvoiceschanged = function () { voice = pickVoice(); };
+  }
+
+  function show(kind, text) { msg.className = "msg show " + kind; msg.textContent = text; }
   function hide() { msg.className = "msg"; msg.textContent = ""; }
 
-  function prettyPhone(digits) {
-    if (digits.length === 11 && digits.charAt(0) === "1") digits = digits.slice(1);
-    if (digits.length !== 10) return "+1 " + digits;
-    return "+1 (" + digits.slice(0,3) + ") " + digits.slice(3,6) + "-" + digits.slice(6);
+  function bubble(who, text, interim) {
+    if (emptyNote && emptyNote.parentNode) emptyNote.parentNode.removeChild(emptyNote);
+    var existing = interim ? transcript.querySelector(".bubble.interim") : null;
+    var el = existing || document.createElement("div");
+    el.className = "bubble " + who + (interim ? " interim" : "");
+    el.textContent = text;
+    if (!existing) transcript.appendChild(el);
+    transcript.scrollTop = transcript.scrollHeight;
+    return el;
+  }
+  function clearInterim() {
+    var i = transcript.querySelector(".bubble.interim");
+    if (i && i.parentNode) i.parentNode.removeChild(i);
   }
 
-  form.addEventListener("submit", function (e) {
-    e.preventDefault();
-    hide();
+  function setState(t, cls) {
+    stateLine.innerHTML = t;
+    avatar.className = "avatar" + (cls ? " " + cls : "");
+  }
 
-    var firstName = document.getElementById("firstName").value.trim();
-    var rawPhone = document.getElementById("phone").value.trim();
-    var digits = rawPhone.replace(/[^0-9]/g, "");
+  /* ---------- speak ---------- */
+  function speak(text, done) {
+    if (!window.speechSynthesis) { done && done(); return; }
+    try { window.speechSynthesis.cancel(); } catch (e) {}
+    var u = new SpeechSynthesisUtterance(text);
+    if (voice) u.voice = voice;
+    u.lang = "en-US"; u.rate = 1.04; u.pitch = 1.06;
+    u.onstart = function () { setState("<b>Speaking…</b>", "speaking"); };
+    u.onend = function () { done && done(); };
+    u.onerror = function () { done && done(); };
+    window.speechSynthesis.speak(u);
+  }
 
-    if (!firstName) { show("err", "Please enter your first name."); return; }
-    if (!(digits.length === 10 || (digits.length === 11 && digits.charAt(0) === "1"))) {
-      show("err", "Please enter a valid 10-digit US mobile number.");
-      return;
-    }
+  /* ---------- brain ---------- */
+  function think(userText, cb) {
+    if (userText) history.push({ role: "user", content: userText });
+    busy = true;
+    setState("Thinking…", "");
+    micBtn.disabled = true; micBtn.textContent = "…";
 
-    var payload = {
-      firstName: firstName,
-      email: document.getElementById("email").value.trim(),
-      phone: digits,
-      service: document.getElementById("service").value,
-      appointmentDate: dateSel.value,
-      appointmentTime: document.getElementById("appointmentTime").value,
-      address: document.getElementById("address").value.trim()
-    };
-
-    btn.disabled = true;
-    btn.textContent = "Placing your call…";
-
-    var timeout = setTimeout(function () {
-      btn.disabled = false;
-      btn.textContent = "Call me now";
-      show("warn", "That took longer than expected. If your phone doesn't ring in a few seconds, try again.");
-    }, 30000);
-
-    fetch(WEBHOOK, {
+    fetch(CHAT_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
+      body: JSON.stringify({ vars: vars, messages: history })
     })
-      .then(function (r) { return r.json().catch(function () { return { ok: false, message: "Unexpected response from the server." }; }); })
-      .then(function (data) {
-        clearTimeout(timeout);
-        btn.disabled = false;
-        btn.textContent = "Call me now";
-
-        if (data && data.ok) {
-          calledNumber.textContent = prettyPhone(digits);
-          formView.style.display = "none";
-          successView.style.display = "block";
-          return;
-        }
-        var m = (data && data.message) || "Something went wrong placing the call. Please try again.";
-        show(data && data.status === "blocked" ? "warn" : "err", m);
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        var reply = (d && d.reply) || "Sorry, could you say that again?";
+        history.push({ role: "assistant", content: reply });
+        bubble("agent", reply);
+        busy = false;
+        speak(reply, function () {
+          if (ended) return;
+          setState("Your turn — tap to answer", "");
+          micBtn.disabled = false; micBtn.textContent = "🎤 Tap to answer";
+        });
+        cb && cb();
       })
       .catch(function () {
-        clearTimeout(timeout);
-        btn.disabled = false;
-        btn.textContent = "Call me now";
-        show("err", "Couldn't reach the call service. Please try again in a moment.");
+        busy = false;
+        bubble("agent", "Sorry, I lost you there. Could you try again?");
+        setState("Your turn — tap to answer", "");
+        micBtn.disabled = false; micBtn.textContent = "🎤 Tap to answer";
       });
+  }
+
+  /* ---------- mic ---------- */
+  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  function startListening() {
+    if (!SR) return;
+    recog = new SR();
+    recog.lang = "en-US";
+    recog.interimResults = true;
+    recog.continuous = false;
+    recog.maxAlternatives = 1;
+
+    var finalText = "";
+
+    recog.onstart = function () {
+      listening = true;
+      micBtn.className = "mic on";
+      micBtn.textContent = "⏹ Stop and send";
+      setState("<b>Listening…</b>", "listening");
+    };
+    recog.onresult = function (e) {
+      var interim = "";
+      for (var i = e.resultIndex; i < e.results.length; i++) {
+        if (e.results[i].isFinal) finalText += e.results[i][0].transcript;
+        else interim += e.results[i][0].transcript;
+      }
+      if (interim) bubble("you", interim, true);
+    };
+    recog.onerror = function (e) {
+      listening = false;
+      micBtn.className = "mic";
+      if (e.error === "not-allowed" || e.error === "service-not-allowed") {
+        setState("Mic blocked — allow it in your browser", "");
+        bubble("agent", "I can't hear you — your browser blocked the microphone. Allow mic access and tap the button again.");
+      } else {
+        setState("Your turn — tap to answer", "");
+      }
+      micBtn.disabled = false; micBtn.textContent = "🎤 Tap to answer";
+    };
+    recog.onend = function () {
+      listening = false;
+      micBtn.className = "mic";
+      clearInterim();
+      var said = finalText.trim();
+      if (!said) {
+        if (!ended && !busy) {
+          setState("Didn't catch that — tap and try again", "");
+          micBtn.disabled = false; micBtn.textContent = "🎤 Tap to answer";
+        }
+        return;
+      }
+      bubble("you", said);
+      think(said);
+    };
+
+    try { recog.start(); } catch (e) {}
+  }
+
+  micBtn.addEventListener("click", function () {
+    if (busy || ended) return;
+    if (listening) { try { recog.stop(); } catch (e) {} return; }
+    startListening();
   });
 
-  document.getElementById("againBtn").addEventListener("click", function () {
-    successView.style.display = "none";
-    formView.style.display = "block";
+  /* ---------- start / end ---------- */
+  $("startBtn").addEventListener("click", function () {
     hide();
+    if (!SR) {
+      show("warn", "Your browser doesn't support in-page voice. Chrome, Edge or Safari will work — or use the phone option below.");
+      return;
+    }
+    var name = $("firstName").value.trim() || "there";
+    vars = {
+      first_name: name,
+      service_type: $("service").value,
+      appointment_date: dateSel.value,
+      appointment_time: $("appointmentTime").value,
+      customer_address: $("address").value.trim() || "the address on file",
+      current_time: new Date().toLocaleString("en-US")
+    };
+    history = []; ended = false;
+    setupView.style.display = "none";
+    callView.style.display = "block";
+    $("callNote").textContent = "Tip: try “I want to cancel” or “I don't remember booking this.”";
+    setState("Connecting…", "");
+    think(null);
+  });
+
+  $("endBtn").addEventListener("click", function () {
+    ended = true;
+    try { if (recog) recog.stop(); } catch (e) {}
+    try { window.speechSynthesis.cancel(); } catch (e) {}
+    callView.style.display = "none";
+    setupView.style.display = "block";
+    transcript.innerHTML = "";
+    transcript.appendChild(emptyNote);
+    show("ok", "Call ended. That was GPT-4.1 running the same policy the production phone agent uses.");
+  });
+
+  /* ---------- phone path ---------- */
+  $("callBtn").addEventListener("click", function () {
+    hide();
+    var btn = $("callBtn");
+    var name = $("firstName").value.trim();
+    var digits = $("phone").value.replace(/[^0-9]/g, "");
+    if (!name) { show("err", "Add your first name first."); return; }
+    if (!(digits.length === 10 || (digits.length === 11 && digits.charAt(0) === "1"))) {
+      show("err", "Enter a valid 10-digit US mobile number."); return;
+    }
+    btn.disabled = true; btn.textContent = "Placing your call…";
+    fetch(CALL_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        firstName: name,
+        phone: digits,
+        service: $("service").value,
+        appointmentDate: dateSel.value,
+        appointmentTime: $("appointmentTime").value,
+        address: $("address").value.trim()
+      })
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        btn.disabled = false; btn.textContent = "📞 Call my phone";
+        if (d && d.ok) { show("ok", "Calling you now — answer and you'll be talking to the agent."); return; }
+        if (d && d.code === "provider_error") {
+          show("warn", "The phone line is temporarily offline. Use “Talk to the agent now” above — it's the same agent, live in your browser.");
+          return;
+        }
+        show("warn", (d && d.message) || "Couldn't place the call. Try the browser option above.");
+      })
+      .catch(function () {
+        btn.disabled = false; btn.textContent = "📞 Call my phone";
+        show("warn", "Couldn't reach the call service. Use “Talk to the agent now” above instead.");
+      });
   });
 })();
 </script>
