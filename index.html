@@ -151,6 +151,9 @@
   .divider{display:flex;align-items:center;gap:12px;margin:20px 0 16px;color:var(--muted);font-size:11px;
     text-transform:uppercase;letter-spacing:.13em;font-weight:700}
   .divider:before,.divider:after{content:"";flex:1;height:1px;background:var(--line)}
+  .altlink{text-align:center;font-size:12.5px;color:var(--muted);margin:16px 0 0}
+  .altlink a{color:var(--accent-2);text-decoration:none;border-bottom:1px solid rgba(92,225,185,.35);font-weight:600}
+  .altlink a:hover{border-bottom-color:var(--accent-2)}
 </style>
 </head>
 <body>
@@ -170,13 +173,13 @@
       <h1>Don't take my word for it.<br /><span class="grad">Talk to the agent.</span></h1>
       <p class="lede">
         This is a real appointment-confirmation agent — the same kind I build for home-services
-        companies. Fill in whatever details you like, then talk to her. She'll work from exactly
-        what you typed, handle your objections, and know when to stop selling and hand you off.
+        companies. Fill in whatever details you like and she'll call you. She works from exactly
+        what you typed, handles your objections, and knows when to stop selling and hand you off.
       </p>
 
       <ol class="steps">
-        <li><span class="num">1</span><span>Enter any appointment details. Made-up is fine — she adapts to whatever's there.</span></li>
-        <li><span class="num">2</span><span>Hit talk and allow your mic. She opens the call the way she would on a real dial-out.</span></li>
+        <li><span class="num">1</span><span>Enter any appointment details. Made-up is fine — she works from whatever you put in.</span></li>
+        <li><span class="num">2</span><span>Drop in your mobile number and tap call. Your phone rings in about ten seconds.</span></li>
         <li><span class="num">3</span><span>Push back on her. Say you want to cancel, say you don't remember booking, say the price scares you.</span></li>
       </ol>
 
@@ -260,6 +263,12 @@
           </div>
 
           <div class="field">
+            <label for="phone">Your mobile number</label>
+            <input id="phone" type="tel" placeholder="(216) 555-0142" autocomplete="tel" inputmode="tel" />
+            <div class="hint">US numbers. One call per number every 30 minutes.</div>
+          </div>
+
+          <div class="field">
             <label for="service">Service being confirmed</label>
             <select id="service">
               <option>Roofing</option>
@@ -293,22 +302,22 @@
           </div>
 
           <div class="btn-row">
-            <button type="button" id="startBtn">🎙️ Talk to the agent now</button>
+            <button type="button" id="callBtn">📞 Call me now</button>
           </div>
-          <div class="fineprint">Runs in your browser. Nothing is recorded, nothing is stored.</div>
-
-          <div class="divider">or</div>
-
-          <div class="field">
-            <label for="phone">Have her call your phone instead</label>
-            <input id="phone" type="tel" placeholder="(216) 555-0142" autocomplete="tel" />
-            <div class="hint">US numbers. One call per number every 30 minutes.</div>
-          </div>
-          <div class="btn-row">
-            <button type="button" class="btn-ghost" id="callBtn">📞 Call my phone</button>
+          <div class="fineprint">
+            One call, placed the moment you tap. Your number is used for this demo call only —
+            never stored, sold, or added to a list.
           </div>
 
           <div class="msg" id="msg" role="alert"></div>
+
+          <div class="btn-row" id="browserFallback" style="display:none">
+            <button type="button" id="startBtn">🎙️ Talk to her in your browser instead</button>
+          </div>
+
+          <p class="altlink">
+            No phone handy? <a href="#" id="startLink">Talk to her right in your browser →</a>
+          </p>
         </div>
 
         <!-- CALL -->
@@ -566,11 +575,24 @@
     startListening();
   });
 
+  /* ---------- live CTA label ---------- */
+  function fmtPhone(digits) {
+    if (digits.length === 11 && digits.charAt(0) === "1") digits = digits.slice(1);
+    if (digits.length !== 10) return "";
+    return "(" + digits.slice(0, 3) + ") " + digits.slice(3, 6) + "-" + digits.slice(6);
+  }
+  function refreshCta() {
+    var pretty = fmtPhone($("phone").value.replace(/[^0-9]/g, ""));
+    $("callBtn").textContent = pretty ? "📞 Call " + pretty + " now" : "📞 Call me now";
+  }
+  $("phone").addEventListener("input", refreshCta);
+  refreshCta();
+
   /* ---------- start / end ---------- */
-  $("startBtn").addEventListener("click", function () {
+  function startBrowserCall() {
     hide();
     if (!SR) {
-      show("warn", "Your browser doesn't support in-page voice. Chrome, Edge or Safari will work — or use the phone option below.");
+      show("warn", "Your browser doesn't support in-page voice — Chrome, Edge or Safari will. The phone option above works either way.");
       return;
     }
     var name = $("firstName").value.trim() || "there";
@@ -588,6 +610,11 @@
     $("callNote").textContent = "Tip: try “I want to cancel” or “I don't remember booking this.”";
     setState("Connecting…", "");
     think(null);
+  }
+
+  $("startBtn").addEventListener("click", startBrowserCall);
+  $("startLink").addEventListener("click", function (e) {
+    e.preventDefault(); startBrowserCall();
   });
 
   $("endBtn").addEventListener("click", function () {
@@ -626,17 +653,22 @@
     })
       .then(function (r) { return r.json(); })
       .then(function (d) {
-        btn.disabled = false; btn.textContent = "📞 Call my phone";
-        if (d && d.ok) { show("ok", "Calling you now — answer and you'll be talking to the agent."); return; }
-        if (d && d.code === "provider_error") {
-          show("warn", "The phone line is temporarily offline. Use “Talk to the agent now” above — it's the same agent, live in your browser.");
+        btn.disabled = false; refreshCta();
+        if (d && d.ok) {
+          show("ok", "Calling " + (fmtPhone(digits) || "you") + " now — answer and you'll be talking to Christina.");
           return;
         }
-        show("warn", (d && d.message) || "Couldn't place the call. Try the browser option above.");
+        if (d && d.code === "provider_error") {
+          show("warn", "Our phone line is briefly offline. You can still talk to her right here — same agent, same script.");
+          $("browserFallback").style.display = "grid";
+          return;
+        }
+        show("warn", (d && d.message) || "Couldn't place the call just now.");
       })
       .catch(function () {
-        btn.disabled = false; btn.textContent = "📞 Call my phone";
-        show("warn", "Couldn't reach the call service. Use “Talk to the agent now” above instead.");
+        btn.disabled = false; refreshCta();
+        show("warn", "Couldn't reach the call service. You can still talk to her right here.");
+        $("browserFallback").style.display = "grid";
       });
   });
 })();
