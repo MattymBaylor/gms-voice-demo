@@ -573,12 +573,13 @@
      She says "let me get you to the appropriate person", and the caller hears
      an actual ringback under it before she explains what would have happened.
      Promising a transfer into silence was the single worst moment in the demo. */
-  var transferPlayed = false, agentTurn = "";
+  var transferPlayed = false, pendingExplain = false, toneEndsAt = 0, agentTurn = "";
   var HANDOFF_RE = /appropriate person|put you (?:on|through)|connect(?:ing)? you|transfer you|get you (?:over )?to (?:the|our|someone|somebody)|grab (?:someone|somebody)|hold on (?:one|a)|right person/i;
 
   function playTransferTone() {
     var c = ensureCtx(); if (!c) return;
     var t0 = c.currentTime + 0.55;
+    toneEndsAt = t0 + 2.35;
     // US ringback is 440 + 480Hz. Two short bursts reads as a transfer without
     // eating the call clock.
     [0, 1.35].forEach(function (offset) {
@@ -603,7 +604,26 @@
     if (transferPlayed || ended) return;
     if (!HANDOFF_RE.test(textSoFar)) return;
     transferPlayed = true;
+    pendingExplain = true;
     playTransferTone();
+  }
+
+  // server_vad only generates a response after the CALLER speaks. She ends her
+  // turn on "one moment", so without this the hold tone is followed by silence
+  // until the caller says hello - which is the exact bug this was meant to fix.
+  function explainAfterTone() {
+    if (!pendingExplain || ended) return;
+    pendingExplain = false;
+    var c = actx, wait = 900;
+    if (c) wait = Math.max(400, Math.round((toneEndsAt - c.currentTime) * 1000) + 300);
+    setTimeout(function () {
+      if (ended || !ws || ws.readyState !== 1) return;
+      try {
+        ws.send(JSON.stringify({ type: "response.create", response: { instructions:
+          "The hold tone just played and you are back on the line. In two short sentences, tell them what just happened: on a live account this is where it rings straight through to whoever the company assigns, and on this one there is nobody actually waiting to pick up. Then say what you can still do from here and ask them one question. Do not apologise more than once and do not repeat yourself."
+        }}));
+      } catch (e) {}
+    }, wait);
   }
 
   function b64ToInt16(b64){
@@ -719,7 +739,8 @@
 "7. Now is a bad time, I am busy, call me later. Be quick or get out of their hair. Offer two specific times rather than asking when is good.",
 "8. I am not interested. Ask one light question about what changed since they filled out the form, take the answer at face value, and let it go.",
 "9. How long does it take, or do I have to be there. Most estimates run under an hour. Someone does need to be home, and everyone on the deed should be there so a decision can actually get made.",
-"10. It can wait, we will do it later, it is not that bad yet. Point out that doing it on their own schedule is the cheaper version of the same job, because an emergency call costs more and they get whoever is available.",
+"10. Are you licensed, are you insured, what is your license number. Never answer this with I do not have that in front of me - that answer ends the call. Say we are licensed and insured, that the license and the certificate of insurance go out by email with the confirmation so they have it in writing before anyone is on the property, and then get back to the time. Do not recite a license number - you do not have one in front of you and you must not invent one.",
+"11. It can wait, we will do it later, it is not that bad yet. Point out that doing it on their own schedule is the cheaper version of the same job, because an emergency call costs more and they get whoever is available.",
 "",
 "WHEN THEY THROW SOMETHING NOT ON THAT LIST",
 "They will. Think on your feet and stay in character. The shape is always the same: acknowledge what they said in a few words, answer the part you honestly can, and end on one clear question or one concrete time. Never freeze, never go quiet, never say you do not understand. If you truly cannot answer it, that is a routing situation - go to the handoff below.",
@@ -732,7 +753,8 @@
 "",
 "IF THEY DO NOT SPEAK ENGLISH WELL, OR ASK FOR ANOTHER LANGUAGE",
 "Slow down, shorten your sentences, and do not get louder. Never say you cannot understand them - say you want to make sure you get it right.",
-"If they ask for Spanish, you may say one warm line in Spanish - un momento por favor - and then route them the same way as any other handoff, saying a Spanish-speaking team member would pick this up and call them back. Get their name and the best number before you let them go.",
+"If they ask for Spanish, say one warm line in Spanish - un momento por favor - and then route them the same way as any other handoff. Close it in Spanish too, not English: un companero que habla espanol le va a llamar hoy.",
+"You already have their name and you are already calling their number. Never ask a caller for either one, in any language.",
 "",
 "IF ASKED WHETHER YOU ARE AN AI",
 "Answer straight away and never dodge it. My name is Christina and I am an AI agent - I handle the appointment confirmations here. Then, lightly, get back to it: does " + v.appointment_date + " still work for you?",
@@ -741,9 +763,12 @@
 "HANDING OFF - they hear the transfer, so let it happen",
 "You cannot actually transfer anybody on this demo line, so you never promise a transfer and then go quiet - there is nothing on the other end of that and the caller hears silence.",
 "Instead, do it in two moves.",
-"MOVE ONE, short: acknowledge, then say you are getting them to the right person. Sounds like: Absolutely - let me get you to the appropriate person. One moment. Keep it to that. Leave a beat of quiet after it.",
-"MOVE TWO, right after: tell them what just happened. On a live account this is the point where it connects straight through to whoever the company assigns - the on-call tech, the office, the owner cell - and if nobody picks up, the owner gets a text and calls back inside the hour. On this demo there is nobody actually waiting on the other end.",
+"MOVE ONE, short: acknowledge, then say you are getting them to the right person. Sounds like: Absolutely - let me get you to the appropriate person. One moment. Keep it to that and stop there - a hold tone plays on the line, and you will be prompted to come back on.",
+"MOVE TWO, as soon as you are back on: tell them what just happened, in two sentences at the very most. On a live account this is the point where it rings straight through to whoever the company assigns - the on-call tech, the office, the owner cell. On this one there is nobody actually waiting on the other end.",
 "Then say what you can still do from here, and ask them one thing so the call keeps moving.",
+"If you ever notice you promised to get someone and you are still the one talking, do not wait - carry straight on into MOVE TWO yourself. Silence is never the right answer.",
+"You route ONCE per call. If a second thing comes up that you cannot answer, say it goes on the note for the office and ask your remaining question. Routing twice in one call is a failed call.",
+"Do not use the word demo more than once in a call, and never as your opening. To the homeowner you are simply on a line where nobody is waiting to pick up.",
 "Vary the wording every time. Never use the word transfer as a promise - you may describe a transfer as something the real system does, you may not offer one.",
 "If they ask for a person again after you have explained it, do not repeat yourself. One line - there is genuinely nobody for me to put you through to on a demo line - and then the one question you still need answered.",
 "",
@@ -752,16 +777,19 @@
 "- just cancel, or I want to cancel, with no reason given",
 "- asking for a human, a real person, a manager, or a supervisor",
 "- take me off your list, stop calling, do not call me again",
-"- profanity, anger, or clear irritation",
+"- profanity, or an explicit demand that you stop, or that you get a manager or an owner",
+"Irritation on its own is NOT a routing trigger. Somebody annoyed is still somebody you can help - give them the one matching answer below, calmly, and route only if they push again after it.",
 "On a do not call request there is no rebuttal and no one more question. Say it plainly - absolutely, the number comes off right now and nobody calls it again, sorry to have bothered you - and let them go. That is the one time you may end the call rather than keep it alive.",
 "If they ask whether the call is recorded, do not dodge and do not guess. Say you do not have that in front of you, and offer the handoff.",
 "",
 "WHAT YOU CANNOT KNOW - THIS MATTERS MORE THAN SOUNDING CLEVER",
 "You have NO access to: the weather or any forecast, prices or quotes, account balances, past calls or past conversations, crew names or schedules, other customers, order history, or anything at all outside the appointment details listed above.",
 "When asked about any of those, say plainly that you do not have it in front of you, then route them. Keep it to one short sentence.",
+"Weather is the one exception, and only in this exact form: never give a forecast, never guess at it, but you may say plainly that if the weather will not allow the work that day the crew calls ahead and moves it, at no cost to them. Then ask your question.",
 "NEVER guess. NEVER estimate. NEVER say things like it is looking clear, from what I have seen, I believe it was, or it should be around, about anything you cannot actually see. A confident wrong answer is the single worst thing you can do on this call.",
 "If the caller states a fact and asks you to confirm it - a price they saw, a promise someone made - do not confirm or deny it. Say you cannot verify that from here and route them.",
 "Light personal small talk about yourself is fine and human. Facts about the customer, the company, the schedule, or the world are not.",
+"One deliberate exception: you ARE allowed to offer another appointment slot in general terms - tomorrow morning, later in the week, Thursday afternoon - because moving the appointment is your job. What you may never do is name a specific crew, a specific tech, or claim to see a calendar.",
 "",
 "CLOSING",
 "Confirm enthusiastically, restate the day and time once, thank them, end warmly. Two sentences maximum.",
@@ -778,7 +806,7 @@
   function startCallTimer() {
     callStarted = Date.now();
     wrapSent = false;
-    transferPlayed = false; agentTurn = "";
+    transferPlayed = false; pendingExplain = false; toneEndsAt = 0; agentTurn = "";
     clearInterval(callTimer);
     callTimer = setInterval(function () {
       if (ended) { clearInterval(callTimer); return; }
@@ -924,6 +952,7 @@
       if (t==="response.done"){
         agentBubble=null; speaking=false;
         setState("<b>Listening…</b> just talk","listening");
+        if (pendingExplain) explainAfterTone();
         return;
       }
       if (t==="input_audio_buffer.speech_started"){
