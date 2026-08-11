@@ -398,6 +398,12 @@
           </div>
 
           <div class="field">
+            <label for="email">Your email</label>
+            <input id="email" type="email" placeholder="you@yourcompany.com" autocomplete="email" inputmode="email" />
+            <div class="hint">She confirms appointments by email — this is where yours goes.</div>
+          </div>
+
+          <div class="field">
             <label for="companyName">Company she is calling for</label>
             <input id="companyName" type="text" placeholder="Quality Home Services" autocomplete="organization" />
             <div class="hint">Put your own company in and she answers the phone with it.</div>
@@ -565,6 +571,11 @@
   // Where the after-call CTA button goes. Change this one line to point it at
   // a booking link, a form, or a mailto - nothing else needs to move.
   var CTA_URL   = "https://growthmindset.ai/#cta";
+  // "GMS Website — Demo Request Intake" in n8n. Posted directly rather than via
+  // growthmindset.ai/api/lead because this file is served standalone and from
+  // inside other pages. That route enforces SMS consent, which this form does
+  // not collect; the workflow itself does not, so demo leads land fine.
+  var LEAD_HOOK = "https://n8n.growthmindsetai.tech/webhook/gms-website-demo-request";
 
   // ── Christina's photo ────────────────────────────────────────────────
   // Inlined as a data URI by the build step so the image and the HTML can
@@ -1177,14 +1188,45 @@ calendarBlock(),
       show("warn","This browser can't run the live voice demo. Chrome, Edge or Safari will.");
       return;
     }
+    // Email is required: she tells the caller the office confirms by email, so
+    // the demo has to be able to make good on that. It is also the only way a
+    // demo-taker who never clicks the CTA is reachable afterwards.
+    var emailVal = ($("email") ? $("email").value.trim() : "");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(emailVal)) {
+      show("warn","Please enter your email — that is where her confirmation goes.");
+      try { $("email").focus(); } catch(e){}
+      return;
+    }
+
     var v = {
       first_name: $("firstName").value.trim() || "there",
+      email: emailVal,
       company_name: $("companyName").value.trim() || "Quality Home Services",
       service_type: $("service").value,
       appointment_date: dateSel.value,
       appointment_time: $("appointmentTime").value,
       customer_address: $("address").value.trim() || "the address on file"
     };
+
+    // Fire-and-forget: a demo-taker is a lead the moment they start the call,
+    // whether or not they ever reach the CTA. Never block the call on this and
+    // never surface a failure — the call is what they came for.
+    try {
+      fetch(LEAD_HOOK, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          first_name: v.first_name,
+          business_name: v.company_name,
+          phone: ($("phone") ? $("phone").value.trim() : ""),
+          email: v.email,
+          service_type: v.service_type,
+          sms_consent: false,
+          source: "voice demo — " + clientSlug()
+        }),
+        keepalive: true
+      }).catch(function(){});
+    } catch(e){}
 
     ended=false;
     setupView.style.display="none";
