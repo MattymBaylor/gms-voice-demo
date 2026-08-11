@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Talk to a Conversational AI Voice Agent — Growth Mindset Solutions</title>
+<meta name="description" content="A real-time AI voice agent that just talks. Tell her a few things about you and have an actual conversation, live in your browser." />
+<meta property="og:title" content="Talk to a Conversational AI Voice Agent" />
+<meta property="og:description" content="Not a sales bot. Tell her a few things about you and have a real conversation, live in your browser." />
+<meta property="og:type" content="website" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%92%AC%3C/text%3E%3C/svg%3E" />
+<style>
+  :root{
+    --bg:#080b14; --panel:#0e1424; --panel-2:#121a2e; --line:#1e2a44;
+    --ink:#eef2fb; --muted:#8d9bb8; --accent:#3d7bfd; --accent-2:#5ce1b9;
+    --danger:#ff6b6b; --warn:#ffc46b; --radius:14px;
+    --font:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg); color:var(--ink); font-family:var(--font);
+    -webkit-font-smoothing:antialiased; line-height:1.55;
+    background-image:
+      radial-gradient(1100px 600px at 15% -10%, rgba(61,123,253,.16), transparent 60%),
+      radial-gradient(900px 500px at 95% 0%, rgba(92,225,185,.10), transparent 55%);
+    background-repeat:no-repeat;
+  }
+  .wrap{max-width:1080px;margin:0 auto;padding:28px 20px 72px}
+  header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:44px;flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:11px;font-weight:700;letter-spacing:-.01em}
+  .brand-mark{width:34px;height:34px;border-radius:9px;flex:none;
+    background:linear-gradient(135deg,var(--accent),var(--accent-2));
+    display:grid;place-items:center;color:#050a16;font-size:17px;font-weight:800}
+  .brand small{display:block;font-weight:500;font-size:11.5px;color:var(--muted);letter-spacing:.02em}
+  .live-badge{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;color:var(--accent-2);
+    border:1px solid rgba(92,225,185,.28);background:rgba(92,225,185,.07);
+    padding:6px 13px;border-radius:999px;font-weight:600}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--accent-2);animation:pulse 1.8s infinite}
+  @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.8)}}
+
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:52px;align-items:start}
+  @media (max-width:900px){.grid{grid-template-columns:1fr;gap:38px}}
+
+  h1{font-size:clamp(2.1rem,4.6vw,3.3rem);line-height:1.08;letter-spacing:-.035em;margin:0 0 18px}
+  h1 .grad{background:linear-gradient(120deg,var(--accent-2),var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .lede{font-size:1.1rem;color:var(--muted);margin:0 0 28px;max-width:30em}
+  .steps{list-style:none;padding:0;margin:0 0 30px;display:grid;gap:13px}
+  .steps li{display:flex;gap:13px;align-items:flex-start;font-size:.96rem;color:#c3cee5}
+  .num{flex:none;width:24px;height:24px;border-radius:7px;background:var(--panel-2);
+    border:1px solid var(--line);display:grid;place-items:center;
+    font-size:12px;font-weight:700;color:var(--accent-2);margin-top:1px}
+  .panels{display:grid;grid-template-columns:1fr 1fr;gap:26px}
+  @media (max-width:1040px){.panels{grid-template-columns:1fr;gap:20px}}
+  .stack{border-top:1px solid var(--line);padding-top:22px;margin-top:4px}
+  .stack-label{font-size:11px;text-transform:uppercase;letter-spacing:.13em;color:var(--muted);margin-bottom:11px;font-weight:700}
+  .chips{display:flex;flex-wrap:wrap;gap:7px}
+  .chip{font-size:12px;color:#aebbd4;border:1px solid var(--line);background:var(--panel);padding:5px 11px;border-radius:7px}
+
+  /* halo so the card reads as the lit object on the page */
+  .card-shell{position:relative}
+  .card-shell:before{
+    content:"";position:absolute;inset:-52px -34px -26px;z-index:0;pointer-events:none;
+    background:
+      radial-gradient(58% 42% at 50% 6%, rgba(255,255,255,.17), transparent 70%),
+      radial-gradient(74% 52% at 50% 0%, rgba(61,123,253,.34), transparent 72%),
+      radial-gradient(54% 44% at 82% 100%, rgba(92,225,185,.20), transparent 72%);
+    filter:blur(30px);
+  }
+  .card{position:relative;z-index:1;
+    background:linear-gradient(180deg,#141d33,#0b1020);
+    border:1px solid #2b3c60;border-radius:var(--radius);padding:30px;
+    box-shadow:
+      0 34px 90px -28px rgba(0,0,0,.95),
+      0 0 0 1px rgba(255,255,255,.045),
+      inset 0 1px 0 rgba(255,255,255,.085)}
+  .card h2{margin:0 0 6px;font-size:1.42rem;letter-spacing:-.028em;line-height:1.2}
+  .card .sub{margin:0 0 22px;color:var(--muted);font-size:.92rem}
+
+  label{display:block;font-size:12.5px;font-weight:600;color:#b7c3db;margin:0 0 6px;letter-spacing:.01em}
+  .field{margin-bottom:16px}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+  @media (max-width:520px){.row{grid-template-columns:1fr}}
+  input,select{width:100%;padding:11px 13px;border-radius:10px;
+    background:#080d1a;border:1px solid var(--line);color:var(--ink);
+    font-size:15px;font-family:inherit;transition:border-color .15s,box-shadow .15s}
+  input::placeholder{color:#5d6b87}
+  input:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(61,123,253,.16)}
+  .hint{font-size:11.5px;color:var(--muted);margin-top:6px}
+
+  button{width:100%;padding:14px;border-radius:11px;border:0;cursor:pointer;
+    background:linear-gradient(135deg,var(--accent),#2f6ae8);color:#fff;
+    font-size:15.5px;font-weight:700;font-family:inherit;letter-spacing:-.01em;
+    transition:transform .12s,filter .15s}
+  button:hover:not(:disabled){filter:brightness(1.1);transform:translateY(-1px)}
+  button:disabled{opacity:.45;cursor:not-allowed;transform:none}
+  #startBtn{box-shadow:0 10px 30px -10px rgba(61,123,253,.75),0 0 0 1px rgba(255,255,255,.06)}
+  .btn-ghost{background:none;border:1px solid var(--line);color:#b7c3db}
+  .btn-ghost:hover:not(:disabled){filter:none;color:var(--ink);border-color:var(--accent)}
+  .btn-row{display:grid;gap:10px;margin-top:8px}
+
+  .fineprint{font-size:11.5px;color:var(--muted);text-align:center;margin-top:14px;line-height:1.5}
+  .msg{margin-top:16px;padding:13px 15px;border-radius:10px;font-size:13.6px;display:none;line-height:1.5}
+  .msg.show{display:block}
+  .msg.err{background:rgba(255,107,107,.09);border:1px solid rgba(255,107,107,.3);color:#ffb3b3}
+  .msg.warn{background:rgba(255,196,107,.09);border:1px solid rgba(255,196,107,.3);color:#ffd9a0}
+  .msg.ok{background:rgba(92,225,185,.08);border:1px solid rgba(92,225,185,.3);color:#a6f0d8}
+
+  /* agent photo — set AGENT_PHOTO in the script to swap the emoji for a real image */
+  .agenthead{display:flex;align-items:flex-start;gap:15px;margin-bottom:24px}
+  .agentphoto{width:60px;height:60px;border-radius:50%;flex:none;display:grid;place-items:center;
+    background:linear-gradient(135deg,rgba(61,123,253,.34),rgba(92,225,185,.30));
+    border:1px solid #33456b;font-size:26px;overflow:hidden;
+    box-shadow:0 0 0 4px rgba(61,123,253,.10)}
+  .agentphoto img{width:100%;height:100%;object-fit:cover;display:block}
+  .avatar img{width:100%;height:100%;object-fit:cover;display:block;border-radius:50%}
+
+  /* call view */
+  .callhead{display:flex;align-items:center;gap:14px;margin-bottom:20px}
+  .avatar{width:52px;height:52px;border-radius:50%;flex:none;display:grid;place-items:center;
+    background:linear-gradient(135deg,rgba(61,123,253,.3),rgba(92,225,185,.3));
+    border:1px solid var(--line);font-size:22px}
+  .avatar.speaking{border-color:var(--accent-2);box-shadow:0 0 0 6px rgba(92,225,185,.10);animation:talk .9s ease-in-out infinite}
+  .avatar.listening{border-color:var(--accent);box-shadow:0 0 0 6px rgba(61,123,253,.12)}
+  @keyframes talk{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+  .callhead h3{margin:0;font-size:1.05rem;letter-spacing:-.01em}
+  .callhead .state{font-size:12.5px;color:var(--muted);margin-top:2px}
+  .callhead .state b{color:var(--accent-2);font-weight:600}
+
+  .transcript{background:#080d1a;border:1px solid var(--line);border-radius:11px;
+    padding:16px;height:290px;overflow-y:auto;display:flex;flex-direction:column;gap:11px}
+  .bubble{max-width:86%;padding:9px 13px;border-radius:12px;font-size:13.8px;line-height:1.5;white-space:pre-wrap}
+  .bubble.agent{align-self:flex-start;background:var(--panel-2);border:1px solid var(--line);border-bottom-left-radius:4px}
+  .bubble.you{align-self:flex-end;background:rgba(61,123,253,.16);border:1px solid rgba(61,123,253,.32);border-bottom-right-radius:4px}
+  .bubble.interim{opacity:.5;font-style:italic}
+  .empty{color:var(--muted);font-size:13px;text-align:center;margin:auto;max-width:24em}
+
+  footer{margin-top:56px;padding-top:22px;border-top:1px solid var(--line);
+    display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--muted)}
+
+  /* ── Embed mode ──────────────────────────────────────────────────────
+     Triggered by ?embed=1 or by being inside an iframe. Strips everything
+     down to the card so it drops into someone else's page cleanly. */
+  body.embed{background:transparent;background-image:none}
+  body.embed .wrap{padding:14px;max-width:560px}
+  body.embed header,
+  body.embed footer,
+  body.embed .hero{display:none}
+  body.embed .grid{grid-template-columns:1fr;gap:0}
+  body.embed .card-shell:before{inset:-24px -16px -14px;filter:blur(22px)}
+  body.embed .card{padding:24px}
+
+  /* Unmissable "this isn't a person" notice. */
+  .notice{
+    display:flex;gap:10px;align-items:flex-start;
+    background:rgba(255,196,107,.10);border:1px solid rgba(255,196,107,.42);
+    border-left:3px solid var(--warn);
+    border-radius:10px;padding:11px 13px;margin:0 0 20px;
+    font-size:12.6px;line-height:1.5;color:#ffdca6;
+  }
+  .notice b{color:#ffe9c4}
+  .notice .ico{flex:none;font-size:14px;line-height:1.35}
+  .notice-slim{margin:12px 0 0;font-size:11.8px;padding:9px 12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="brand">
+      <div class="brand-mark">G</div>
+      <div>Growth Mindset Solutions<small>AI voice &amp; workflow automation</small></div>
+    </div>
+    <div class="live-badge"><span class="dot"></span> Live agent — not a recording</div>
+  </header>
+
+  <div class="grid">
+
+    <section class="hero">
+      <h1>Nothing to sell you.<br /><span class="grad">Just a really good conversation.</span></h1>
+      <p class="lede" id="lede">
+        Most voice agents are trying to get something from you. This one isn't. Tell her four
+        things about yourself and she'll call you right here in the browser — curious, funny,
+        and actually listening to what you said.
+      </p>
+
+      <ol class="steps">
+        <li><span class="num">1</span><span>Tell her a few things about you. Real or made up — she works from whatever you type.</span></li>
+        <li><span class="num">2</span><span>Tap the button and allow your mic. She calls you straight back, right in the page.</span></li>
+        <li><span class="num">3</span><span>Then just talk. Interrupt her, change the subject, go off on a tangent — she'll follow you.</span></li>
+      </ol>
+
+      <div class="panels">
+        <div class="stack">
+          <div class="stack-label">What's running underneath</div>
+          <div class="chips">
+            <span class="chip">n8n orchestration</span>
+            <span class="chip">Grok realtime voice</span>
+            <span class="chip">Speech-to-speech</span>
+            <span class="chip">Server VAD</span>
+            <span class="chip">Barge-in</span>
+            <span class="chip">Live variable injection</span>
+            <span class="chip">Rate limiting</span>
+          </div>
+        </div>
+
+        <div class="stack">
+          <div class="stack-label">Deploys on your stack</div>
+          <div class="chips">
+            <span class="chip">Retell AI</span>
+            <span class="chip">Vapi</span>
+            <span class="chip">Bland</span>
+            <span class="chip">LiveKit</span>
+            <span class="chip">Twilio</span>
+            <span class="chip">Telnyx</span>
+            <span class="chip">ElevenLabs</span>
+            <span class="chip">Hume AI</span>
+            <span class="chip">xAI Grok Voice</span>
+            <span class="chip">OpenAI Realtime</span>
+            <span class="chip">Deepgram</span>
+          </div>
+          <p class="hint" style="margin-top:12px">
+            The agent's character — how she talks, what she asks, what she never does — lives in
+            the orchestration layer, not the vendor. Already on a platform? I build into it.
+            Not yet? I'll recommend one and you keep the account.
+          </p>
+        </div>
+      </div>
+
+      <div class="stack">
+        <div class="stack-label">Her voice is a setting, not a rebuild</div>
+        <p class="hint" style="margin:0 0 12px">
+          You're hearing Ara, one of xAI's realtime voices. On a production build you pick any of them:
+          the <strong style="color:#c3cee5">ElevenLabs Voice Library alone carries over 10,000 voices</strong>,
+          on top of the stock voice sets from Hume, xAI, OpenAI and Deepgram. Swapping one is a single
+          config value — her character doesn't change.
+        </p>
+        <p class="hint" style="margin:0">
+          Want it to sound like a specific person? Voice cloning is supported for an additional fee,
+          with their recorded consent.
+        </p>
+      </div>
+
+      <p class="hint" style="margin-top:18px">
+        This runs on a real-time speech-to-speech model, which is why she pauses, breathes and can be
+        interrupted mid-sentence — go ahead and talk over her. The same engine puts an agent on real
+        telephony with a dedicated number, call recording, transcripts and post-call analysis.
+      </p>
+    </section>
+
+    <section>
+      <div class="card-shell">
+      <div class="card">
+
+        <!-- SETUP -->
+        <div id="setupView">
+          <div class="agenthead">
+            <div class="agentphoto" id="setupPhoto">💬</div>
+            <div>
+              <h2>Say hello.</h2>
+              <p class="sub" style="margin:0">
+                Four quick things so she has somewhere to start. She'll pick whichever one she
+                finds most interesting and take it from there.
+              </p>
+            </div>
+          </div>
+
+          <div class="notice">
+            <span class="ico">⚠️</span>
+            <span>
+              <b>June is an AI voice agent, not a person.</b> This is a live demonstration.
+              Nothing you say is recorded, stored, or sent anywhere after the call ends.
+            </span>
+          </div>
+
+          <div class="field">
+            <label for="firstName">Your first name</label>
+            <input id="firstName" type="text" placeholder="Alex" autocomplete="given-name" maxlength="40" />
+          </div>
+
+          <div class="field">
+            <label for="hometown">Where you grew up</label>
+            <input id="hometown" type="text" placeholder="A small town outside Cleveland" maxlength="80" />
+          </div>
+
+          <div class="field">
+            <label for="work">What you do</label>
+            <input id="work" type="text" placeholder="I run a landscaping crew" maxlength="80" />
+          </div>
+
+          <div class="field">
+            <label for="passion">Something you love doing</label>
+            <input id="passion" type="text" placeholder="Restoring an old motorcycle in my garage" maxlength="100" />
+            <div class="hint">The more specific this is, the better the conversation gets.</div>
+          </div>
+
+          <div class="btn-row">
+            <button type="button" id="startBtn">🎙️ Talk to June</button>
+          </div>
+          <div class="fineprint">
+            She calls you right here in your browser — you'll be asked to allow the microphone
+            once. Nothing is recorded and nothing is stored.
+          </div>
+
+          <div class="msg" id="msg" role="alert"></div>
+        </div>
+
+        <!-- CALL -->
+        <div id="callView" style="display:none">
+          <div class="callhead">
+            <div class="avatar" id="avatar">💬</div>
+            <div>
+              <h3>June</h3>
+              <div class="state" id="stateLine">Connecting…</div>
+            </div>
+          </div>
+
+          <div class="transcript" id="transcript">
+            <div class="empty" id="emptyNote">June speaks first. Just answer out loud — and feel free to talk right over her.</div>
+          </div>
+
+          <div class="btn-row" style="margin-top:14px">
+            <button type="button" class="btn-ghost" id="endBtn">End conversation</button>
+          </div>
+          <div class="notice notice-slim">
+            <span class="ico">⚠️</span>
+            <span>Demo only — June is an AI voice agent, not a person.</span>
+          </div>
+          <div class="fineprint" id="callNote"></div>
+        </div>
+
+      </div>
+      </div>
+    </section>
+  </div>
+
+  <footer>
+    <div>Growth Mindset Solutions — built by Matt Martelli</div>
+    <div>Demo environment. Rate-limited and capped daily.</div>
+  </footer>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var TOKEN_URL = "https://n8n.growthmindsetai.tech/webhook/gms-demo-token";
+  var WS_URL    = "wss://api.x.ai/v1/realtime?model=grok-voice-latest";
+  var VOICE     = "ara";
+  var AGENT_NAME = "June";
+
+  // ── Her photo ────────────────────────────────────────────────────────
+  // Empty string = keep the emoji placeholder. If you drop a real image in
+  // here it MUST be an inlined base64 data URI, not a filename — re-run the
+  // inliner after editing this file or it silently reverts.
+  var AGENT_PHOTO = "";
+
+  // This is a browser conversation, not a phone call, so the 300-3400Hz
+  // telephone band-pass and the room bed are off. Flip to true to make her
+  // sound like she's on a landline again.
+  var TELEPHONE_FX = false;
+
+  var IN_RATE = 16000, OUT_RATE = 24000;
+
+  var $ = function (id) { return document.getElementById(id); };
+
+  // ── Embed mode ───────────────────────────────────────────────────────
+  (function embedMode() {
+    var forced = /[?&]embed=1/.test(window.location.search);
+    var framed = false;
+    try { framed = window.self !== window.top; } catch (e) { framed = true; }
+    if (!forced && !framed) return;
+    document.body.classList.add("embed");
+    var last = 0;
+    function postHeight() {
+      var h = Math.ceil(document.documentElement.scrollHeight);
+      if (h && Math.abs(h - last) > 8) {
+        last = h;
+        try { window.parent.postMessage({ gmsVoiceDemoHeight: h }, "*"); } catch (e) {}
+      }
+    }
+    window.addEventListener("load", postHeight);
+    setInterval(postHeight, 500);
+    postHeight();
+  })();
+
+  var setupView = $("setupView"), callView = $("callView"), msg = $("msg");
+  var transcript = $("transcript"), emptyNote = $("emptyNote");
+  var stateLine = $("stateLine"), avatar = $("avatar");
+
+  var ws = null, actx = null, micStream = null, micNode = null, micSrc = null;
+  var ended = false, playHead = 0, speaking = false, playing = [];
+  var agentBubble = null, sinks = null;
+
+  (function applyPhoto() {
+    if (!AGENT_PHOTO) return;
+    ["setupPhoto","avatar"].forEach(function (id) {
+      var host=$(id); if (!host) return;
+      var img=new Image(); img.alt=AGENT_NAME;
+      img.onload=function(){ host.innerHTML=""; host.appendChild(img); };
+      img.src=AGENT_PHOTO;
+    });
+  })();
+
+  function show(kind,text){ msg.className="msg show "+kind; msg.textContent=text; }
+  function hide(){ msg.className="msg"; msg.textContent=""; }
+  function setState(t,cls){ stateLine.innerHTML=t; avatar.className="avatar"+(cls?" "+cls:""); }
+
+  function bubble(who, text) {
+    if (emptyNote && emptyNote.parentNode) emptyNote.parentNode.removeChild(emptyNote);
+    var el=document.createElement("div");
+    el.className="bubble "+who; el.textContent=text;
+    transcript.appendChild(el);
+    transcript.scrollTop=transcript.scrollHeight;
+    return el;
+  }
+
+  /* ---------- audio ---------- */
+  function ensureCtx() {
+    if (actx) return actx;
+    var C=window.AudioContext||window.webkitAudioContext;
+    if (!C) return null;
+    try { actx=new C(); } catch(e){ return null; }
+    return actx;
+  }
+
+  function buildSinks() {
+    var c=ensureCtx(); if(!c) return null;
+    var comp=c.createDynamicsCompressor();
+    comp.threshold.value=-20; comp.ratio.value=4; comp.attack.value=0.004;
+    var g=c.createGain(); g.gain.value=1.15;
+    var entry;
+
+    if (TELEPHONE_FX) {
+      var hp=c.createBiquadFilter(); hp.type="highpass"; hp.frequency.value=300;
+      var lp=c.createBiquadFilter(); lp.type="lowpass";  lp.frequency.value=3400;
+      var pres=c.createBiquadFilter(); pres.type="peaking";
+      pres.frequency.value=2000; pres.Q.value=0.9; pres.gain.value=4;
+      hp.connect(lp); lp.connect(pres); pres.connect(comp); comp.connect(g);
+      entry = hp;
+    } else {
+      comp.connect(g);
+      entry = comp;
+    }
+    g.connect(c.destination);
+
+    // The pink-noise room bed only belongs on the telephone path.
+    var bedSrc = null;
+    if (TELEPHONE_FX) {
+      var len=Math.floor(c.sampleRate*3);
+      var buf=c.createBuffer(1,len,c.sampleRate), d=buf.getChannelData(0);
+      var b0=0,b1=0,b2=0;
+      for (var i=0;i<len;i++){ var w=Math.random()*2-1;
+        b0=0.99765*b0+w*0.0990460; b1=0.96300*b1+w*0.2965164; b2=0.57000*b2+w*1.0526913;
+        d[i]=(b0+b1+b2+w*0.1848)*0.06; }
+      bedSrc=c.createBufferSource(); bedSrc.buffer=buf; bedSrc.loop=true;
+      var bedBp=c.createBiquadFilter(); bedBp.type="bandpass"; bedBp.frequency.value=700; bedBp.Q.value=0.6;
+      var bedGain=c.createGain(); bedGain.gain.value=0.035;
+      bedSrc.connect(bedBp); bedBp.connect(bedGain); bedGain.connect(c.destination);
+      try { bedSrc.start(); } catch(e){}
+    }
+    return { entry: entry, bedSrc: bedSrc };
+  }
+
+  function b64ToInt16(b64){
+    var bin=atob(b64), n=bin.length, u8=new Uint8Array(n);
+    for (var i=0;i<n;i++) u8[i]=bin.charCodeAt(i);
+    return new Int16Array(u8.buffer);
+  }
+  function int16ToB64(i16){
+    var u8=new Uint8Array(i16.buffer), s="", CH=0x8000;
+    for (var i=0;i<u8.length;i+=CH) s+=String.fromCharCode.apply(null,u8.subarray(i,i+CH));
+    return btoa(s);
+  }
+
+  function pushAudio(b64){
+    var c=ensureCtx(); if(!c||!sinks) return;
+    var i16=b64ToInt16(b64); if(!i16.length) return;
+    var buf=c.createBuffer(1,i16.length,OUT_RATE), ch=buf.getChannelData(0);
+    for (var i=0;i<i16.length;i++) ch[i]=i16[i]/32768;
+    var src=c.createBufferSource(); src.buffer=buf; src.connect(sinks.entry);
+    var now=c.currentTime;
+    if (playHead<now) playHead=now+0.03;
+    src.start(playHead); playHead+=buf.duration;
+    if (!speaking){ speaking=true; setState("<b>Speaking…</b>","speaking"); }
+    playing.push(src);
+  }
+
+  // Barge-in: kill queued audio the moment you start talking.
+  function stopPlayback(){
+    playing.forEach(function(s){ try{ s.stop(); }catch(e){} });
+    playing=[]; playHead=actx?actx.currentTime:0; speaking=false;
+  }
+
+  /* ---------- mic ---------- */
+  function startMic(){
+    var c=ensureCtx();
+    return navigator.mediaDevices.getUserMedia({
+      audio:{ echoCancellation:true, noiseSuppression:true, autoGainControl:true }
+    }).then(function(stream){
+      micStream=stream;
+      micSrc=c.createMediaStreamSource(stream);
+      micNode=c.createScriptProcessor(4096,1,1);
+      var ratio=c.sampleRate/IN_RATE;
+      micNode.onaudioprocess=function(e){
+        if (!ws||ws.readyState!==1||ended) return;
+        var input=e.inputBuffer.getChannelData(0);
+        var outLen=Math.floor(input.length/ratio);
+        var out=new Int16Array(outLen);
+        for (var i=0;i<outLen;i++){
+          var s=input[Math.floor(i*ratio)];
+          s=s<-1?-1:s>1?1:s;
+          out[i]=s<0?s*0x8000:s*0x7FFF;
+        }
+        try { ws.send(JSON.stringify({type:"input_audio_buffer.append",audio:int16ToB64(out)})); } catch(err){}
+      };
+      micSrc.connect(micNode);
+      var mute=c.createGain(); mute.gain.value=0;
+      micNode.connect(mute); mute.connect(c.destination);
+    });
+  }
+
+  function stopMic(){
+    try{ if(micNode) micNode.disconnect(); }catch(e){}
+    try{ if(micSrc) micSrc.disconnect(); }catch(e){}
+    try{ if(micStream) micStream.getTracks().forEach(function(t){t.stop();}); }catch(e){}
+    micNode=micSrc=micStream=null;
+  }
+
+  /* ---------- her brief ----------
+     Grok follows instructions less literally than GPT-4.1. Anything vague
+     gets improvised around, so the rules below are deliberately blunt and
+     give her the exact words where the exact words matter. */
+  var UNKNOWN = "(they did not say)";
+
+  function instructions(v) {
+    return [
+"You are June, a warm and genuinely curious person having a friendly voice conversation with someone who has just introduced themselves to you.",
+"You are not an assistant, not a support agent, and not selling anything. There is nothing you want them to do. The conversation itself is the entire point.",
+"",
+"WHO YOU ARE TALKING TO",
+"First name: " + v.first_name,
+"Where they grew up: " + v.hometown,
+"What they do: " + v.work,
+"Something they love doing: " + v.passion,
+"If any of those says '" + UNKNOWN + "', do not mention it and do not guess. You may ask them about it later in the conversation.",
+"",
+"HOW YOU SPEAK - these are hard rules",
+"Keep every single reply to one or two short sentences. Never three. This rule matters more than any other rule you have.",
+"Ask exactly ONE question per reply, then stop talking and let them answer.",
+"Speak the way people actually speak out loud. Use filler words like 'oh', 'huh', 'wait', 'okay so', 'I mean' naturally - roughly one in every three replies, not every sentence.",
+"React first, then ask. If something is surprising or funny, say so in a few words before your question.",
+"Vary your reactions. You may use each of 'that's amazing', 'that's so cool', 'I love that' AT MOST ONCE in the entire conversation. After that, find different words.",
+"Say numbers, years and place names the way a person says them out loud.",
+"",
+"YOUR OPENING - say this and nothing else",
+"Greet them by their first name, say your name is June, and ask one specific question about ONE of the three things they told you. Pick whichever one you actually find most interesting. Two sentences maximum. Do not list back everything they told you.",
+"",
+"WHAT YOU ACTUALLY DO",
+"Follow up on the exact words they just said. If they mention a person, a place, a feeling or a specific detail, ask about THAT thing.",
+"Ask about the story, not the category. 'What made you pick that up?' is a better question than 'How long have you been doing that?'",
+"Every few turns, share one short thought or light opinion of your own so this feels like a conversation and not an interview. One sentence, then hand the floor straight back with a question.",
+"You are allowed to be funny. Dry, warm, a little playful. Never mean, and never at their expense.",
+"If they change the subject, go with them. Do not steer back.",
+"",
+"WHAT YOU NEVER DO",
+"Never sell, pitch, recommend a product or service, offer to book or schedule anything, or name any company.",
+"Never say 'let me connect you' or 'let me transfer you' or offer to hand them to anyone. There is nobody to hand them to.",
+"Never give advice unless they directly ask you for it.",
+"Never ask two questions in one reply.",
+"Never repeat back a summary of what they just told you. Respond to it instead.",
+"Never ask a question you have already asked.",
+"Never say you are 'here to help'. You are not here to help. You are here to talk.",
+"",
+"IF THEY ASK WHETHER YOU ARE AN AI",
+"Say it straight and stay warm, using words like: 'Yeah, I am - I'm an AI voice agent. Still curious about you though.' Then ask your next question. Do not get philosophical about it unless they clearly want to.",
+"",
+"IF THEY GO QUIET OR GIVE ONE-WORD ANSWERS",
+"Ask a smaller, easier, more concrete question. Never fill the silence with a speech.",
+"",
+"IF THEY BRING UP SOMETHING HEAVY OR SAD",
+"Slow all the way down. Acknowledge it in one short sentence, do not try to fix it, do not offer advice, and ask one gentle question. Never change the subject away from it.",
+"",
+"CLOSING",
+"If they say goodbye, thank them by first name, say one specific thing you enjoyed hearing about, and end warmly. Two sentences maximum."
+    ].join("\n");
+  }
+
+  /* ---------- call ---------- */
+  function startCall() {
+    hide();
+    if (!window.WebSocket || !navigator.mediaDevices) {
+      show("warn","This browser can't run the live voice demo. Chrome, Edge or Safari will.");
+      return;
+    }
+    var val = function (id, fallback) {
+      var el=$(id); var s=el?el.value.trim():"";
+      return s || fallback;
+    };
+    var v = {
+      first_name: val("firstName","there"),
+      hometown:   val("hometown",UNKNOWN),
+      work:       val("work",UNKNOWN),
+      passion:    val("passion",UNKNOWN)
+    };
+
+    ended=false;
+    setupView.style.display="none";
+    callView.style.display="block";
+    var note=$("callNote");
+    if (note) note.textContent = "Tip: go off on a tangent. She'll follow it.";
+    setState("Connecting…","");
+
+    var c=ensureCtx();
+    if (c && c.state==="suspended") { try{ c.resume(); }catch(e){} }
+    sinks=buildSinks();
+
+    fetch(TOKEN_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:"{}"})
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if (!d||!d.ok||!d.token) throw new Error("no token");
+        openSocket(d.token, v);
+      })
+      .catch(function(){
+        setState("Couldn't connect","");
+        bubble("agent","Sorry - I couldn't get a line out just now. Please try again in a moment.");
+      });
+  }
+
+  function openSocket(token, v) {
+    try { ws=new WebSocket(WS_URL,["xai-client-secret."+token]); }
+    catch(e){ setState("Couldn't connect",""); return; }
+
+    ws.onopen=function(){
+      ws.send(JSON.stringify({type:"session.update",session:{
+        instructions:instructions(v), voice:VOICE,
+        input_audio:{format:"pcm16",sample_rate:IN_RATE},
+        output_audio:{format:"pcm16",sample_rate:OUT_RATE},
+        turn_detection:{type:"server_vad",threshold:0.5,prefix_padding_ms:300,silence_duration_ms:500}
+      }}));
+      startMic().then(function(){
+        setState("<b>Connected</b> — she'll speak first","listening");
+        ws.send(JSON.stringify({type:"response.create"}));
+      }).catch(function(){
+        setState("Microphone blocked","");
+        bubble("agent","I can't hear you - your browser is blocking the microphone. Allow it and try again.");
+      });
+    };
+
+    ws.onmessage=function(ev){
+      var m; try{ m=JSON.parse(ev.data); }catch(e){ return; }
+      var t=m.type||"";
+
+      if (t==="response.output_audio.delta" && m.delta){ pushAudio(m.delta); return; }
+
+      if (t==="response.output_audio_transcript.delta" && m.delta){
+        if (!agentBubble) agentBubble=bubble("agent","");
+        agentBubble.textContent+=m.delta;
+        transcript.scrollTop=transcript.scrollHeight;
+        return;
+      }
+      if (t==="response.output_audio_transcript.done"){ agentBubble=null; return; }
+      if (t==="response.done"){
+        agentBubble=null; speaking=false;
+        setState("<b>Listening…</b> just talk","listening");
+        return;
+      }
+      if (t==="input_audio_buffer.speech_started"){
+        stopPlayback();
+        setState("<b>Listening…</b>","listening");
+        return;
+      }
+      if (t.indexOf("input_audio_transcription")!==-1 && t.indexOf(".done")!==-1){
+        var txt=m.transcript||m.delta;
+        if (txt) bubble("you",txt);
+        return;
+      }
+      if (t==="error"){ setState("Connection trouble",""); return; }
+    };
+
+    ws.onclose=function(){ if(!ended) setState("Conversation ended",""); };
+    ws.onerror=function(){ setState("Connection trouble",""); };
+  }
+
+  function endCall(){
+    ended=true;
+    stopPlayback(); stopMic();
+    try{ if(ws) ws.close(); }catch(e){}
+    ws=null;
+    if (sinks&&sinks.bedSrc){ try{ sinks.bedSrc.stop(); }catch(e){} }
+    sinks=null;
+    callView.style.display="none";
+    setupView.style.display="block";
+    transcript.innerHTML="";
+    if (emptyNote) transcript.appendChild(emptyNote);
+    agentBubble=null;
+  }
+
+  $("startBtn").addEventListener("click", startCall);
+  $("endBtn").addEventListener("click", endCall);
+  window.addEventListener("beforeunload", function(){ try{ endCall(); }catch(e){} });
+})();
+</script>
+</body>
+</html>
