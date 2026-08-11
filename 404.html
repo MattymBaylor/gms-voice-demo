@@ -184,6 +184,7 @@
   .aftercall .stat b{font-size:1.12em}
   .aftercall .stat i{display:block;font-style:normal;font-size:11px;opacity:.62;margin-top:1px}
   .aftercall .statfoot{display:block;margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+  .aftercall .statline{display:block;margin-top:8px}
   /* ── After the call ────────────────────────────────────────────────
      The panel is good news, so it reads green rather than warning-orange,
      and the form it used to sit on top of gets out of the way. */
@@ -337,15 +338,13 @@
           <div class="notice aftercall" id="afterCall" style="display:none">
             <span class="ico">📞</span>
             <span>
-              <b>That was one call, and she never dropped it.</b>
-              <span class="stat"><b>48%</b> of people who call a home services business never reach a person.<i>Invoca, 2026 — 70M+ calls</i></span>
-              <span class="stat"><b>21%</b> of them hang up and call a competitor on the spot.<i>CallRail, 2025 — survey of 1,000 consumers</i></span>
-              <span class="stat"><b>$87,000</b> tile, <b>$18–20,000</b> shingle — Naples.<i>You already knew that one. That is the point.</i></span>
-              <span class="statfoot">Two or three missed calls a week is about
-              <b>13 jobs a year</b> that never call back. On shingle alone that is
-              <b>$245,000</b>. On tile it clears <b>a million</b>.
-              She answers on the first ring, at 9pm, on a Sunday, the week after a storm —
-              and hands you the ones worth driving out for.</span>
+              <b>She never dropped that call.</b>
+              <span class="stat"><b>48%</b> of home-services callers never reach a person.<i>Invoca, 2026</i></span>
+              <span class="stat"><b>21%</b> hang up and call a competitor.<i>CallRail, 2025</i></span>
+              <span class="stat"><b>$87,000</b> tile &middot; <b>$18–20,000</b> shingle — Naples.<i>You already knew that one. That is the point.</i></span>
+              <span class="statfoot">Two or three missed calls a week is <b>13 jobs a year</b>.
+              On shingle that is <b>$245,000</b>; on tile it clears <b>a million</b>.
+              <span class="statline">She answers on the first ring. At 9pm. On a Sunday. The week after a storm.</span></span>
             </span>
           </div>
 
@@ -1286,9 +1285,9 @@ calendarBlock(),
     // The form has done its job. From here the page is the result and the offer.
     setupView.classList.add("postcall");
     var h=setupView.querySelector(".agenthead h2");
-    if (h) h.textContent = "That is exactly what your prospects would hear.";
+    if (h) h.textContent = "That was her working from a script.";
     var hs=setupView.querySelector(".agenthead .sub");
-    if (hs) hs.textContent = "Same agent, your company, your market. Below is how to get one of your own.";
+    if (hs) hs.textContent = "The live one knows your pricing, your calendar and your crews.";
     transcript.innerHTML="";
     if (emptyNote) transcript.appendChild(emptyNote);
     agentBubble=null;
