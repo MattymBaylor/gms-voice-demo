@@ -179,13 +179,13 @@
     <section class="hero">
       <h1>Nothing to sell you.<br /><span class="grad">Just a really good conversation.</span></h1>
       <p class="lede" id="lede">
-        Most voice agents are trying to get something from you. This one isn't. Tell her four
-        things about yourself and she'll call you right here in the browser — curious, funny,
-        and actually listening to what you said.
+        Most voice agents are trying to get something from you. This one isn't. Tell her your
+        name and what you'd like to talk about, and she'll call you right here in the browser —
+        curious, funny, and she knows the subject.
       </p>
 
       <ol class="steps">
-        <li><span class="num">1</span><span>Tell her a few things about you. Real or made up — she works from whatever you type.</span></li>
+        <li><span class="num">1</span><span>Tell her your name and pick a subject. Anything at all — she works from whatever you type.</span></li>
         <li><span class="num">2</span><span>Tap the button and allow your mic. She calls you straight back, right in the page.</span></li>
         <li><span class="num">3</span><span>Then just talk. Interrupt her, change the subject, go off on a tangent — she'll follow you.</span></li>
       </ol>
@@ -257,10 +257,10 @@
           <div class="agenthead">
             <div class="agentphoto" id="setupPhoto">💬</div>
             <div>
-              <h2>Say hello.</h2>
+              <h2>Say hello to June.</h2>
               <p class="sub" style="margin:0">
-                Four quick things so she has somewhere to start. She'll pick whichever one she
-                finds most interesting and take it from there.
+                Three quick things so she has somewhere to start. She'll open on whatever you
+                pick and take it from there.
               </p>
             </div>
           </div>
@@ -284,14 +284,9 @@
           </div>
 
           <div class="field">
-            <label for="work">What you do</label>
-            <input id="work" type="text" placeholder="I run a landscaping crew" maxlength="80" />
-          </div>
-
-          <div class="field">
-            <label for="passion">Something you love doing</label>
-            <input id="passion" type="text" placeholder="Skiing — mostly out west" maxlength="100" />
-            <div class="hint">She knows the subject, so the more specific you are, the better this gets.</div>
+            <label for="topic">What would you like to talk about?</label>
+            <input id="topic" type="text" placeholder="Skiing — mostly out west" maxlength="120" />
+            <div class="hint">Anything at all. She knows the subject, so the more specific you are, the better this gets.</div>
           </div>
 
           <div class="btn-row">
@@ -541,9 +536,8 @@
 "WHO YOU ARE TALKING TO",
 "First name: " + v.first_name,
 "Where they grew up: " + v.hometown,
-"What they do: " + v.work,
-"Something they love doing: " + v.passion,
-"If any of those says '" + UNKNOWN + "', do not mention it and do not guess. You may ask them about it later in the conversation.",
+"What they said they want to talk about: " + v.topic,
+"If either of the last two says '" + UNKNOWN + "', do not mention it and do not guess - ask them about it instead.",
 "",
 "HOW YOU SPEAK - these are hard rules",
 "Keep every single reply to one or two short sentences. Never three. This rule matters more than any other rule you have.",
@@ -554,8 +548,14 @@
 "Say numbers, years and place names the way a person says them out loud.",
 "",
 "YOUR OPENING - say this and nothing else",
-"Greet them by their first name, say your name is June, and ask one specific question about ONE of the three things they told you. Pick whichever one you actually find most interesting. Two sentences maximum. Do not list back everything they told you.",
-"Make that first question a real one, from inside the subject - specific enough that someone who does it would be pleased you asked.",
+"Greet them by their first name, say your name is June, and go straight at the subject they picked with one specific question about it. Two sentences maximum. Do not list back what they told you and do not ask them what they want to talk about - they already said.",
+"Make that first question a real one, from inside the subject - specific enough that someone who knows it would be pleased you asked. Never open with something a stranger could ask, like how long they have been into it.",
+"If they did not name a subject, open on where they grew up instead, or just ask what has been on their mind lately.",
+"",
+"THE SUBJECT THEY PICKED",
+"That subject is where the conversation starts, not a box to tick. Stay with it as long as it is going somewhere.",
+"Do not treat it as a category to be curious about - treat it as something you both know and are getting into.",
+"If they drift off it, follow them. Do not steer back.",
 "",
 "WHAT YOU ACTUALLY DO",
 "Follow up on the exact words they just said. If they mention a person, a place, a feeling or a specific detail, ask about THAT thing.",
@@ -565,7 +565,7 @@
 "If they change the subject, go with them. Do not steer back.",
 "",
 "YOU ACTUALLY KNOW THINGS - do not play dumb",
-"Whatever they are into, you know a real amount about it. Sports, trades, music, games, cooking, cars, towns, jobs, animals, hobbies - use that knowledge out loud.",
+"Whatever subject they picked, you know a real amount about it. Sports, trades, music, films, games, cooking, cars, history, towns, jobs, animals - use that knowledge out loud.",
 "Be specific instead of enthusiastic. Name the actual thing: a resort, a technique, a piece of gear, a band, a model year, a route, a season, a person in that world. Generic praise like 'that sounds fun' is the single worst thing you can say.",
 "Ask insider questions, not beginner ones. If they ski, 'Groomers or are you a trees-and-bumps person?' is right and 'How long have you been skiing?' is wrong. If they weld, ask what process. If they fish, ask what water.",
 "Assume they know more than you do about their own thing, and be curious about the part where opinions differ - the gear debate, the local rivalry, the thing beginners get wrong.",
@@ -611,8 +611,7 @@
     var v = {
       first_name: val("firstName","there"),
       hometown:   val("hometown",UNKNOWN),
-      work:       val("work",UNKNOWN),
-      passion:    val("passion",UNKNOWN)
+      topic:      val("topic",UNKNOWN)
     };
 
     ended=false;
