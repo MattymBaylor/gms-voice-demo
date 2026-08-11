@@ -348,11 +348,11 @@
           </div>
 
           <div class="transcript" id="transcript">
-            <div class="empty" id="emptyNote">The agent will speak first. When she pauses, tap the button below and answer.</div>
+            <div class="empty" id="emptyNote">Christina speaks first. When she stops, just answer out loud — the mic opens on its own.</div>
           </div>
 
-          <button type="button" class="mic" id="micBtn" disabled>Hold on…</button>
-          <div class="btn-row" style="margin-top:10px">
+          <button type="button" class="mic" id="micBtn" style="display:none">🎤 Tap to answer</button>
+          <div class="btn-row" style="margin-top:14px">
             <button type="button" class="btn-ghost" id="endBtn">End call</button>
           </div>
           <div class="fineprint" id="callNote"></div>
@@ -422,6 +422,7 @@
   var history = [];
   var vars = {};
   var recog = null, listening = false, busy = false, ended = false;
+  var silenceRetries = 0, micBlocked = false;
   var voice = null;
 
   /* ---------- dates ---------- */
@@ -654,7 +655,7 @@
     if (userText) history.push({ role: "user", content: userText });
     busy = true;
     setState("Thinking…", "");
-    micBtn.disabled = true; micBtn.textContent = "…";
+    hideManualMic();
 
     fetch(CHAT_URL, {
       method: "POST",
@@ -667,20 +668,31 @@
         history.push({ role: "assistant", content: reply });
         bubble("agent", reply);
         busy = false;
-        speak(reply, function () {
-          if (ended) return;
-          setState("Your turn — tap to answer", "");
-          micBtn.disabled = false; micBtn.textContent = "🎤 Tap to answer";
-        }, d && d.audio);
+        speak(reply, handOverToCaller, d && d.audio);
         cb && cb();
       })
       .catch(function () {
         busy = false;
-        bubble("agent", "Sorry, I lost you there. Could you try again?");
-        setState("Your turn — tap to answer", "");
-        micBtn.disabled = false; micBtn.textContent = "🎤 Tap to answer";
+        bubble("agent", "Sorry, I lost you there. Could you say that again?");
+        handOverToCaller();
       });
   }
+
+  // She's finished talking — open the mic straight away. No button, no tap.
+  function handOverToCaller() {
+    if (ended) return;
+    silenceRetries = 0;
+    startListening();
+  }
+
+  // Only surfaced if hands-free genuinely can't run (mic blocked, or repeated silence).
+  function showManualMic(label) {
+    micBtn.style.display = "block";
+    micBtn.disabled = false;
+    micBtn.className = "mic";
+    micBtn.textContent = label || "🎤 Tap to answer";
+  }
+  function hideManualMic() { micBtn.style.display = "none"; }
 
   /* ---------- mic ---------- */
   var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -716,9 +728,8 @@
 
     recog.onstart = function () {
       listening = true;
-      micBtn.className = "mic on";
-      micBtn.textContent = "⏹ Stop and send";
-      setState("<b>Listening…</b>", "listening");
+      hideManualMic();
+      setState("<b>Listening…</b> just talk", "listening");
     };
     recog.onresult = function (e) {
       var interim = "";
@@ -730,36 +741,54 @@
     };
     recog.onerror = function (e) {
       listening = false;
-      micBtn.className = "mic";
       if (e.error === "not-allowed" || e.error === "service-not-allowed") {
-        setState("Mic blocked — allow it in your browser", "");
-        bubble("agent", "I can't hear you — your browser blocked the microphone. Allow mic access and tap the button again.");
+        micBlocked = true;
+        setState("Microphone blocked", "");
+        bubble("agent", "I can't hear you - your browser is blocking the microphone. Allow it, then tap the button below.");
+        showManualMic("🎤 Tap to answer");
+      } else if (e.error === "no-speech" || e.error === "aborted") {
+        /* normal end of a turn - onend re-arms */
       } else {
-        setState("Your turn — tap to answer", "");
+        // network / audio-capture hiccups: retry quietly before asking for a tap
+        silenceRetries++;
+        if (silenceRetries <= 3 && !ended && !busy) {
+          setTimeout(function () { if (!ended && !busy && !listening) startListening(); }, 600);
+        } else {
+          setState("Trouble hearing you", "");
+          showManualMic("🎤 Tap to answer");
+        }
       }
-      micBtn.disabled = false; micBtn.textContent = "🎤 Tap to answer";
     };
     recog.onend = function () {
       listening = false;
-      micBtn.className = "mic";
       clearInterim();
       var said = finalText.trim();
-      if (!said) {
-        if (!ended && !busy) {
-          setState("Didn't catch that — tap and try again", "");
-          micBtn.disabled = false; micBtn.textContent = "🎤 Tap to answer";
-        }
+
+      if (said) {
+        silenceRetries = 0;
+        bubble("you", said);
+        think(said);
         return;
       }
-      bubble("you", said);
-      think(said);
+      if (ended || busy || micBlocked) return;
+
+      // Nothing said. Quietly re-open the mic a few times so a pause in the
+      // conversation doesn't end the call, then fall back to a manual tap.
+      silenceRetries++;
+      if (silenceRetries <= 4) {
+        setState("<b>Listening…</b> just talk", "listening");
+        setTimeout(function () { if (!ended && !busy && !listening) startListening(); }, 350);
+      } else {
+        setState("Still there?", "");
+        showManualMic("🎤 Tap to answer");
+      }
     };
 
     return recog;
   }
 
   function startListening() {
-    if (!SR) return;
+    if (!SR || ended) return;
     primeMic().then(function () {
       if (ended) return;
       ensureRecog();
@@ -768,8 +797,11 @@
     });
   }
 
+  // Only reachable via the fallback button.
   micBtn.addEventListener("click", function () {
     if (busy || ended) return;
+    micBlocked = false;
+    silenceRetries = 0;
     if (listening) { try { recog.stop(); } catch (e) {} return; }
     startListening();
   });
