@@ -184,6 +184,38 @@
   .aftercall .stat b{font-size:1.12em}
   .aftercall .stat i{display:block;font-style:normal;font-size:11px;opacity:.62;margin-top:1px}
   .aftercall .statfoot{display:block;margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+  /* ── After the call ────────────────────────────────────────────────
+     The panel is good news, so it reads green rather than warning-orange,
+     and the form it used to sit on top of gets out of the way. */
+  .notice.aftercall{
+    border-color:rgba(92,225,185,.30);
+    border-left-color:var(--accent-2);
+    background:linear-gradient(180deg,rgba(92,225,185,.10),rgba(92,225,185,.035));
+    box-shadow:0 0 0 1px rgba(92,225,185,.05),0 20px 44px -30px rgba(92,225,185,.55);
+    color:#cfeee2}
+  .notice.aftercall b{color:#eafff7}
+  .notice.aftercall .stat b,.notice.aftercall .statfoot b{color:var(--accent-2)}
+  .notice.aftercall .statfoot{border-top-color:rgba(92,225,185,.20)}
+
+  #setupView.postcall .field,
+  #setupView.postcall #browserFallback,
+  #setupView.postcall #browserFine,
+  #setupView.postcall #altLink{display:none !important}
+  #setupView.postcall #ctaBlock{display:block}
+
+  #ctaBlock{display:none;margin-top:20px;padding:18px 18px 20px;border-radius:14px;
+    border:1px solid rgba(92,225,185,.22);
+    background:linear-gradient(180deg,rgba(92,225,185,.07),rgba(92,225,185,.02))}
+  #ctaBlock h3{margin:0 0 8px;font-size:17px;line-height:1.3;color:#eafff7}
+  #ctaBlock p{margin:0 0 16px;font-size:13.5px;line-height:1.55;color:var(--muted)}
+  #ctaBtn{display:block;width:100%;text-align:center;text-decoration:none;
+    padding:14px 18px;border-radius:11px;font-weight:700;font-size:15px;color:#06231b;
+    background:linear-gradient(135deg,var(--accent-2),#33b892);
+    box-shadow:0 10px 30px -10px rgba(92,225,185,.6),0 0 0 1px rgba(255,255,255,.06)}
+  #ctaBtn:hover{filter:brightness(1.06)}
+  #ctaAgain{text-align:center;font-size:12.5px;color:var(--muted);margin:14px 0 0}
+  #ctaAgain a{color:var(--muted);text-decoration:none;border-bottom:1px solid rgba(255,255,255,.18)}
+  #ctaAgain a:hover{color:var(--accent-2);border-bottom-color:var(--accent-2)}
   .altlink a:hover{border-bottom-color:var(--accent-2)}
 </style>
 </head>
@@ -389,6 +421,18 @@
             once. Demo calls run up to two minutes. Nothing is recorded and nothing is stored.
           </div>
 
+          <!-- Shown only after a call has happened (#setupView.postcall).
+               COPY and DESTINATION are meant to be edited: the href below is
+               CTA_URL in the script, the words are right here. -->
+          <div id="ctaBlock">
+            <h3 id="ctaHead">Want to hear this one with your company on it?</h3>
+            <p id="ctaBody">Tell me about your business and I'll build you an actual call &mdash;
+              your name, your market, the objections you actually get &mdash; and email it to you
+              inside 24 hours.</p>
+            <a id="ctaBtn" href="#" rel="noopener">Get my agent demo</a>
+            <p id="ctaAgain"><a href="#" id="againLink">or run this one again</a></p>
+          </div>
+
           <p class="altlink" id="altLink">
             No phone handy? <a href="#" id="startLink">Talk to her right in your browser →</a>
           </p>
@@ -436,8 +480,51 @@
   "use strict";
 
   var TOKEN_URL = "https://n8n.growthmindsetai.tech/webhook/gms-demo-token";
+
+  // ── Per-client config ────────────────────────────────────────────────
+  // The token webhook already fires once before every call, so it returns the
+  // client's market and pricing alongside the token. Zero added latency, and
+  // no mid-call retrieval - a round-trip during the call would put us straight
+  // back into the dead-air bug this build exists to fix.
+  // These defaults are the Naples values verbatim: if the webhook returns
+  // nothing, or an unknown slug, the demo behaves exactly as it always has.
+  var CFG = {
+    market:  "Naples",
+    tile:    "eighty-seven thousand",
+    shingle: "eighteen to twenty",
+    extra:   ""
+  };
+
+  // Slug comes from ?c= on the demo URL. When the page is framed (both site
+  // embeds are), our own search string is just ?embed=1 - so fall back to the
+  // parent page URL, which document.referrer gives us. That way a personalised
+  // link works on the live sites without either site repo having to change.
+  function clientSlug() {
+    function pick(str) {
+      var m = /[?&]c=([A-Za-z0-9_-]{1,40})(?:&|$)/.exec(str || "");
+      return m ? m[1] : "";
+    }
+    var own = "";
+    try { own = pick(window.location.search); } catch (e) {}
+    if (own) return own;
+    try { return pick(document.referrer); } catch (e) { return ""; }
+  }
+
+  function applyConfig(cfg, v) {
+    if (!cfg || typeof cfg !== "object") return;
+    ["market", "tile", "shingle", "extra"].forEach(function (k) {
+      if (typeof cfg[k] === "string" && cfg[k]) CFG[k] = cfg[k];
+    });
+    // The page's own fields win unless the client record actually sets one.
+    if (typeof cfg.company_name === "string" && cfg.company_name) v.company_name = cfg.company_name;
+    if (typeof cfg.service_type === "string" && cfg.service_type) v.service_type = cfg.service_type;
+  }
   var WS_URL    = "wss://api.x.ai/v1/realtime?model=grok-voice-latest";
   var VOICE     = "ara";
+
+  // Where the after-call CTA button goes. Change this one line to point it at
+  // a booking link, a form, or a mailto - nothing else needs to move.
+  var CTA_URL   = "https://growthmindset.ai/pricing";
 
   // ── Christina's photo ────────────────────────────────────────────────
   // Inlined as a data URI by the build step so the image and the HTML can
@@ -778,7 +865,7 @@
         (early
           ? "The appointment is settled and the call is winding down. Do not ask another question. "
           : "The call is out of time. Close warmly RIGHT NOW - thank them by name, and do not ask another question. ") +
-        "If the appointment is settled, this is the moment for the aside to the owner listening: you work around the clock, you do not get sick or tired, you pick up in under three seconds, and you can hold thirty of these at once. Then the Naples figures, exactly as written - a tile roof is eighty-seven thousand and shingle is eighteen to twenty, so three missed calls in a day is not three missed calls, it is the whole month. Say those two numbers exactly. Do not round them, do not hedge them, do not say you cannot know pricing. Then sign off easily with no ask at all. If the appointment is NOT settled, skip every bit of that and just close warmly."
+        "If the appointment is settled, this is the moment for the aside to the owner listening: you work around the clock, you do not get sick or tired, you pick up in under three seconds, and you can hold thirty of these at once. Then the " + CFG.market + " figures, exactly as written - a tile roof is " + CFG.tile + " and shingle is " + CFG.shingle + ", so three missed calls in a day is not three missed calls, it is the whole month. Say those two numbers exactly. Do not round them, do not hedge them, do not say you cannot know pricing. Then sign off easily with no ask at all. If the appointment is NOT settled, skip every bit of that and just close warmly."
       }}));
     } catch (e) {}
   }
@@ -968,7 +1055,7 @@ calendarBlock(),
 "NEVER guess. NEVER estimate. NEVER say things like it is looking clear, from what I have seen, I believe it was, or it should be around, about anything you cannot actually see. A confident wrong answer is the single worst thing you can do on this call.",
 "If the caller states a fact and asks you to confirm it - a price they saw, a promise someone made - do not confirm or deny it. Say you cannot verify that from here, that the office will have it in writing, and carry on.",
 "Light personal small talk about yourself is fine and human. Facts about the customer, the company, the schedule, or the world are not.",
-"There is exactly ONE carve-out, and it applies only in THE LAST TEN SECONDS below, after the appointment is settled: the two Naples roof figures written there are given to you deliberately and are accurate, so you may say them. Everything in this section still applies to every other second of the call.",
+"There is exactly ONE carve-out, and it applies only in THE LAST TEN SECONDS below, after the appointment is settled: the two " + CFG.market + " roof figures written there are given to you deliberately and are accurate, so you may say them. Everything in this section still applies to every other second of the call.",
 "One deliberate exception: you ARE allowed to offer another appointment slot in general terms - tomorrow morning, later in the week, Thursday afternoon - because moving the appointment is your job. What you may never do is name a specific crew, a specific tech, or claim to see a calendar.",
 "",
 "CLOSING",
@@ -976,13 +1063,14 @@ calendarBlock(),
 "",
 "THE LAST TEN SECONDS - only after the appointment is settled, never before",
 "Once the appointment is confirmed or moved and you have asked the homeowners question, the working part of this call is done. That does not mean say this now. This is the last thing you say before you let them go, not something you do the moment there is nothing left to ask - if the call plainly has room left in it, stay in role and let them use it. When it is genuinely ending, step out of the role for a moment and speak to the person who is actually listening - the owner sizing you up. Warm, easy, slightly amused at yourself. This is not a pitch and you never push.",
-"Roughly like this, in your own words, four or five short sentences at the most: And listen - since it is you sizing me up here, not the homeowner. I work around the clock. I do not get sick, I do not get tired, I pick up in under three seconds, and I can hold thirty of these at once without putting a single person on hold. A tile roof in Naples is what, eighty-seven thousand, and shingle is eighteen to twenty - so three missed calls in a day is not three missed calls, it is the whole month.",
-"Those are Naples numbers and they are correct. Say them exactly - eighty-seven thousand, not around eighty or roughly ninety. The precision is the entire point: it is what tells the owner listening that this was built for HIS market and not bolted on from a template. Never hedge them, never round them into vagueness, never say you cannot know pricing. In this closing aside only, they are yours to say.",
+"Roughly like this, in your own words, four or five short sentences at the most: And listen - since it is you sizing me up here, not the homeowner. I work around the clock. I do not get sick, I do not get tired, I pick up in under three seconds, and I can hold thirty of these at once without putting a single person on hold. A tile roof in " + CFG.market + " is what, " + CFG.tile + ", and shingle is " + CFG.shingle + " - so three missed calls in a day is not three missed calls, it is the whole month.",
+"Those are " + CFG.market + " numbers and they are correct. Say them exactly as written - never rounded off, never widened into a range, never softened with about or around. The precision is the entire point: it is what tells the owner listening that this was built for HIS market and not bolted on from a template. Never hedge them, never round them into vagueness, never say you cannot know pricing. In this closing aside only, they are yours to say.",
 "Do not invent any OTHER number. These two, your own capabilities, and nothing else. Never quote a price for a specific job on a specific house - that is still theirs, not yours.",
 "Then sign off and stop. No ask, no think it over, no pitch, no mention of booking anything. Something easy and human: anyway, I will let you go - enjoy the rest of your afternoon. Or: that is all from me, have a good one. Not asking them for anything is the entire point of the ending.",
 "If time is short, skip all of this and just close warmly. It is the last thing, not the important thing - and never do it at the cost of leaving the appointment unsettled.",
 "",
-"NEVER name any company other than " + v.company_name + ". Never invent pricing. Never argue. Never repeat yourself. Never be rude, no matter how they speak to you."
+"NEVER name any company other than " + v.company_name + ". Never invent pricing. Never argue. Never repeat yourself. Never be rude, no matter how they speak to you.",
+(CFG.extra || "")
     ].join("\n");
   }
 
@@ -1069,10 +1157,10 @@ calendarBlock(),
     if (c && c.state==="suspended") { try{ c.resume(); }catch(e){} }
     sinks=buildSinks();
 
-    fetch(TOKEN_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:"{}"})
+    fetch(TOKEN_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({client:clientSlug()})})
       .then(function(r){ return r.json(); })
       .then(function(d){
-        if (d && d.ok && d.token) { openSocket(d.token, v); return; }
+        if (d && d.ok && d.token) { applyConfig(d.config, v); openSocket(d.token, v); return; }
         var e=new Error("denied"); e.info=d||{}; throw e;
       })
       .catch(function(err){
@@ -1190,10 +1278,31 @@ calendarBlock(),
     callView.style.display="none";
     setupView.style.display="block";
     var ac=$("afterCall"); if (ac) ac.style.display="";
+    // The form has done its job. From here the page is the result and the offer.
+    setupView.classList.add("postcall");
+    var h=setupView.querySelector(".agenthead h2");
+    if (h) h.textContent = "That is exactly what your prospects would hear.";
+    var hs=setupView.querySelector(".agenthead .sub");
+    if (hs) hs.textContent = "Same agent, your company, your market. Below is how to get one of your own.";
     transcript.innerHTML="";
     if (emptyNote) transcript.appendChild(emptyNote);
     agentBubble=null;
   }
+
+  (function wireCta() {
+    var b=$("ctaBtn"); if (b) b.setAttribute("href", CTA_URL);
+    var again=$("againLink");
+    if (again) again.addEventListener("click", function (e) {
+      e.preventDefault();
+      setupView.classList.remove("postcall");
+      var ac=$("afterCall"); if (ac) ac.style.display="none";
+      var h=setupView.querySelector(".agenthead h2");
+      if (h) h.textContent = "Schedule your online appointment now.";
+      var hs=setupView.querySelector(".agenthead .sub");
+      if (hs) hs.textContent = "This kind of engagement lets your prospects set their own appointment and get a live call from a voice AI agent. She runs the call, overcomes at least one objection, then routes the lead appropriately. I customize her to fit your business.";
+      var sb=$("startBtn"); if (sb && sb.scrollIntoView) sb.scrollIntoView({behavior:"smooth",block:"center"});
+    });
+  })();
 
   function endCall(){
     ended = true;
