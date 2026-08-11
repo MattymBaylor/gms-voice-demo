@@ -486,20 +486,121 @@
   /* ---------- speak ---------- */
   var audioEl = null;
 
+  // ── Phone-line realism ───────────────────────────────────────────────
+  // The Retell build used ambient_sound: "call-center". Two things sell a
+  // real call: her voice band-limited to the telephone range (300-3400Hz),
+  // and a very quiet room tone underneath while she talks.
+  var TELEPHONE_FX = true;
+  var actx = null, bedGain = null, bedSrc = null;
+
+  function ensureCtx() {
+    if (actx) return actx;
+    var C = window.AudioContext || window.webkitAudioContext;
+    if (!C) return null;
+    try { actx = new C(); } catch (e) { actx = null; }
+    return actx;
+  }
+
+  // Softly filtered noise reads as a busy room without being identifiable.
+  function startBed() {
+    var c = ensureCtx();
+    if (!c || bedSrc) return;
+    try {
+      var len = Math.floor(c.sampleRate * 3);
+      var buf = c.createBuffer(1, len, c.sampleRate);
+      var d = buf.getChannelData(0);
+      var b0 = 0, b1 = 0, b2 = 0;
+      for (var i = 0; i < len; i++) {
+        var w = Math.random() * 2 - 1;
+        b0 = 0.99765 * b0 + w * 0.0990460;
+        b1 = 0.96300 * b1 + w * 0.2965164;
+        b2 = 0.57000 * b2 + w * 1.0526913;
+        d[i] = (b0 + b1 + b2 + w * 0.1848) * 0.06;
+      }
+      bedSrc = c.createBufferSource();
+      bedSrc.buffer = buf; bedSrc.loop = true;
+
+      var bp = c.createBiquadFilter();
+      bp.type = "bandpass"; bp.frequency.value = 700; bp.Q.value = 0.6;
+
+      bedGain = c.createGain();
+      bedGain.gain.value = 0.0;
+
+      bedSrc.connect(bp); bp.connect(bedGain); bedGain.connect(c.destination);
+      bedSrc.start();
+    } catch (e) { bedSrc = null; }
+  }
+
+  function bed(on) {
+    if (!bedGain || !actx) return;
+    try {
+      bedGain.gain.cancelScheduledValues(actx.currentTime);
+      bedGain.gain.linearRampToValueAtTime(on ? 0.05 : 0.0, actx.currentTime + 0.35);
+    } catch (e) {}
+  }
+
+  function stopBed() {
+    try { if (bedSrc) bedSrc.stop(); } catch (e) {}
+    bedSrc = null; bedGain = null;
+  }
+
+  function b64ToBuf(b64) {
+    var bin = atob(b64), n = bin.length, u8 = new Uint8Array(n);
+    for (var i = 0; i < n; i++) { u8[i] = bin.charCodeAt(i); }
+    return u8.buffer;
+  }
+
+  // Play her voice through a telephone band-pass so it lands like a call
+  // rather than a studio recording. Falls back to plain playback on failure.
+  function playThroughLine(b64, done, onFail) {
+    var c = ensureCtx();
+    if (!c || !TELEPHONE_FX) { onFail(); return; }
+    if (c.state === "suspended") { try { c.resume(); } catch (e) {} }
+    c.decodeAudioData(b64ToBuf(b64), function (buffer) {
+      try {
+        var src = c.createBufferSource();
+        src.buffer = buffer;
+
+        var hp = c.createBiquadFilter();
+        hp.type = "highpass"; hp.frequency.value = 300;
+        var lp = c.createBiquadFilter();
+        lp.type = "lowpass"; lp.frequency.value = 3400;
+        var pres = c.createBiquadFilter();
+        pres.type = "peaking"; pres.frequency.value = 2000;
+        pres.Q.value = 0.9; pres.gain.value = 4;
+
+        var comp = c.createDynamicsCompressor();
+        comp.threshold.value = -20; comp.ratio.value = 4; comp.attack.value = 0.004;
+
+        var g = c.createGain(); g.gain.value = 1.25;
+
+        src.connect(hp); hp.connect(lp); lp.connect(pres);
+        pres.connect(comp); comp.connect(g); g.connect(c.destination);
+
+        setState("<b>Speaking…</b>", "speaking");
+        bed(true);
+        src.onended = function () { bed(false); done && done(); };
+        src.start();
+      } catch (e) { onFail(); }
+    }, function () { onFail(); });
+  }
+
   // Preferred path: real TTS audio returned by the workflow (Grok "Aria").
   // Falls back to the browser's built-in voice when no audio is supplied.
   function speak(text, done, b64) {
     if (b64) {
-      try {
-        if (audioEl) { audioEl.pause(); audioEl = null; }
-        audioEl = new Audio("data:audio/mpeg;base64," + b64);
-        audioEl.onplay = function () { setState("<b>Speaking…</b>", "speaking"); };
-        audioEl.onended = function () { done && done(); };
-        audioEl.onerror = function () { speak(text, done); };
-        var p = audioEl.play();
-        if (p && p.catch) { p.catch(function () { speak(text, done); }); }
-        return;
-      } catch (e) { /* fall through to browser voice */ }
+      var plain = function () {
+        try {
+          if (audioEl) { audioEl.pause(); audioEl = null; }
+          audioEl = new Audio("data:audio/mpeg;base64," + b64);
+          audioEl.onplay = function () { setState("<b>Speaking…</b>", "speaking"); };
+          audioEl.onended = function () { done && done(); };
+          audioEl.onerror = function () { speak(text, done); };
+          var p = audioEl.play();
+          if (p && p.catch) { p.catch(function () { speak(text, done); }); }
+        } catch (e) { speak(text, done); }
+      };
+      try { playThroughLine(b64, done, plain); return; } catch (e) { plain(); return; }
     }
     if (!window.speechSynthesis) { done && done(); return; }
     try { window.speechSynthesis.cancel(); } catch (e) {}
@@ -674,6 +775,8 @@
     // Ask for the mic once, up front, while she's greeting you — so answering
     // never triggers a second prompt mid-conversation.
     primeMic();
+    // The click that got us here counts as the user gesture Web Audio needs.
+    startBed();
     think(null);
   }
 
@@ -687,6 +790,7 @@
     try { if (recog) recog.stop(); } catch (e) {}
     try { window.speechSynthesis.cancel(); } catch (e) {}
     if (audioEl) { try { audioEl.pause(); } catch (e) {} audioEl = null; }
+    bed(false); stopBed();
     releaseMic();
     callView.style.display = "none";
     setupView.style.display = "block";
