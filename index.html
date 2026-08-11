@@ -346,7 +346,23 @@
   }
 
   /* ---------- speak ---------- */
-  function speak(text, done) {
+  var audioEl = null;
+
+  // Preferred path: real TTS audio returned by the workflow (Grok "Aria").
+  // Falls back to the browser's built-in voice when no audio is supplied.
+  function speak(text, done, b64) {
+    if (b64) {
+      try {
+        if (audioEl) { audioEl.pause(); audioEl = null; }
+        audioEl = new Audio("data:audio/mpeg;base64," + b64);
+        audioEl.onplay = function () { setState("<b>Speaking…</b>", "speaking"); };
+        audioEl.onended = function () { done && done(); };
+        audioEl.onerror = function () { speak(text, done); };
+        var p = audioEl.play();
+        if (p && p.catch) { p.catch(function () { speak(text, done); }); }
+        return;
+      } catch (e) { /* fall through to browser voice */ }
+    }
     if (!window.speechSynthesis) { done && done(); return; }
     try { window.speechSynthesis.cancel(); } catch (e) {}
     var u = new SpeechSynthesisUtterance(text);
@@ -380,7 +396,7 @@
           if (ended) return;
           setState("Your turn — tap to answer", "");
           micBtn.disabled = false; micBtn.textContent = "🎤 Tap to answer";
-        });
+        }, d && d.audio);
         cb && cb();
       })
       .catch(function () {
