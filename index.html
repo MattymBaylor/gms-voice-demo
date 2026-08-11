@@ -57,11 +57,25 @@
   .chips{display:flex;flex-wrap:wrap;gap:7px}
   .chip{font-size:12px;color:#aebbd4;border:1px solid var(--line);background:var(--panel);padding:5px 11px;border-radius:7px}
 
-  .card{background:linear-gradient(180deg,var(--panel),#0b1020);
-    border:1px solid var(--line);border-radius:var(--radius);
-    padding:30px;box-shadow:0 24px 70px -30px rgba(0,0,0,.9)}
-  .card h2{margin:0 0 5px;font-size:1.22rem;letter-spacing:-.02em}
-  .card .sub{margin:0 0 22px;color:var(--muted);font-size:.9rem}
+  /* halo so the card reads as the lit object on the page */
+  .card-shell{position:relative}
+  .card-shell:before{
+    content:"";position:absolute;inset:-52px -34px -26px;z-index:0;pointer-events:none;
+    background:
+      radial-gradient(58% 42% at 50% 6%, rgba(255,255,255,.17), transparent 70%),
+      radial-gradient(74% 52% at 50% 0%, rgba(61,123,253,.34), transparent 72%),
+      radial-gradient(54% 44% at 82% 100%, rgba(92,225,185,.20), transparent 72%);
+    filter:blur(30px);
+  }
+  .card{position:relative;z-index:1;
+    background:linear-gradient(180deg,#141d33,#0b1020);
+    border:1px solid #2b3c60;border-radius:var(--radius);padding:30px;
+    box-shadow:
+      0 34px 90px -28px rgba(0,0,0,.95),
+      0 0 0 1px rgba(255,255,255,.045),
+      inset 0 1px 0 rgba(255,255,255,.085)}
+  .card h2{margin:0 0 6px;font-size:1.42rem;letter-spacing:-.028em;line-height:1.2}
+  .card .sub{margin:0 0 22px;color:var(--muted);font-size:.92rem}
 
   label{display:block;font-size:12.5px;font-weight:600;color:#b7c3db;margin:0 0 6px;letter-spacing:.01em}
   .field{margin-bottom:16px}
@@ -83,6 +97,9 @@
     transition:transform .12s,filter .15s}
   button:hover:not(:disabled){filter:brightness(1.1);transform:translateY(-1px)}
   button:disabled{opacity:.45;cursor:not-allowed;transform:none}
+  #startBtn{box-shadow:0 10px 30px -10px rgba(61,123,253,.75),0 0 0 1px rgba(255,255,255,.06)}
+  #callBtn{box-shadow:0 8px 26px -12px rgba(92,225,185,.45)}
+  .mic{box-shadow:0 10px 30px -10px rgba(92,225,185,.7)}
   .btn-ghost{background:none;border:1px solid var(--line);color:#b7c3db}
   .btn-ghost:hover:not(:disabled){filter:none;color:var(--ink);border-color:var(--accent)}
   .btn-danger{background:linear-gradient(135deg,#e2564f,#c33f39)}
@@ -94,6 +111,15 @@
   .msg.err{background:rgba(255,107,107,.09);border:1px solid rgba(255,107,107,.3);color:#ffb3b3}
   .msg.warn{background:rgba(255,196,107,.09);border:1px solid rgba(255,196,107,.3);color:#ffd9a0}
   .msg.ok{background:rgba(92,225,185,.08);border:1px solid rgba(92,225,185,.3);color:#a6f0d8}
+
+  /* agent photo — set AGENT_PHOTO in the script to swap the emoji for a real image */
+  .agenthead{display:flex;align-items:flex-start;gap:15px;margin-bottom:24px}
+  .agentphoto{width:60px;height:60px;border-radius:50%;flex:none;display:grid;place-items:center;
+    background:linear-gradient(135deg,rgba(61,123,253,.34),rgba(92,225,185,.30));
+    border:1px solid #33456b;font-size:26px;overflow:hidden;
+    box-shadow:0 0 0 4px rgba(61,123,253,.10)}
+  .agentphoto img{width:100%;height:100%;object-fit:cover;display:block}
+  .avatar img{width:100%;height:100%;object-fit:cover;display:block;border-radius:50%}
 
   /* call view */
   .callhead{display:flex;align-items:center;gap:14px;margin-bottom:20px}
@@ -212,12 +238,21 @@
     </section>
 
     <section>
+      <div class="card-shell">
       <div class="card">
 
         <!-- SETUP -->
         <div id="setupView">
-          <h2>Set up the call</h2>
-          <p class="sub">These become the live variables the agent speaks from.</p>
+          <div class="agenthead">
+            <div class="agentphoto" id="setupPhoto">👩</div>
+            <div>
+              <h2>Test the intelligence of Christina.</h2>
+              <p class="sub" style="margin:0">
+                Set the appointment however you like — these become the live variables she
+                speaks from. Then try to trip her up.
+              </p>
+            </div>
+          </div>
 
           <div class="field">
             <label for="firstName">Your first name</label>
@@ -298,6 +333,7 @@
         </div>
 
       </div>
+      </div>
     </section>
   </div>
 
@@ -313,6 +349,12 @@
 
   var CHAT_URL = "https://n8n.growthmindsetai.tech/webhook/gms-demo-chat";
   var CALL_URL = "https://n8n.growthmindsetai.tech/webhook/gms-voice-demo";
+
+  // ── Christina's photo ────────────────────────────────────────────────
+  // Drop an image in the repo (e.g. christina.jpg) and put its name here,
+  // or paste a full https:// URL. Leave "" to keep the emoji placeholder.
+  var AGENT_PHOTO = "";
+  // ─────────────────────────────────────────────────────────────────────
 
   var $ = function (id) { return document.getElementById(id); };
   var setupView = $("setupView"), callView = $("callView");
@@ -362,6 +404,19 @@
     voice = pickVoice();
     window.speechSynthesis.onvoiceschanged = function () { voice = pickVoice(); };
   }
+
+  // Swap the emoji placeholders for a real photo, if one is configured.
+  (function applyPhoto() {
+    if (!AGENT_PHOTO) return;
+    ["setupPhoto", "avatar"].forEach(function (id) {
+      var host = $(id);
+      if (!host) return;
+      var img = new Image();
+      img.alt = "Christina";
+      img.onload = function () { host.innerHTML = ""; host.appendChild(img); };
+      img.src = AGENT_PHOTO;
+    });
+  })();
 
   function show(kind, text) { msg.className = "msg show " + kind; msg.textContent = text; }
   function hide() { msg.className = "msg"; msg.textContent = ""; }
