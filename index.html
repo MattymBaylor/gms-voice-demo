@@ -547,16 +547,35 @@
 
   /* ---------- mic ---------- */
   var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  var micStream = null;
+  var finalText = "";
 
-  function startListening() {
-    if (!SR) return;
+  // Hold one live mic grant for the whole call. Without this the browser
+  // treats every recognition session as a fresh request and re-prompts.
+  function primeMic() {
+    if (micStream || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      return Promise.resolve();
+    }
+    return navigator.mediaDevices.getUserMedia({ audio: true })
+      .then(function (s) { micStream = s; })
+      .catch(function () { /* recognition will surface the error itself */ });
+  }
+
+  function releaseMic() {
+    if (!micStream) return;
+    try { micStream.getTracks().forEach(function (t) { t.stop(); }); } catch (e) {}
+    micStream = null;
+  }
+
+  // Build the recogniser once and reuse it. Constructing a new one per turn is
+  // what makes some browsers ask for permission again on every single answer.
+  function ensureRecog() {
+    if (recog || !SR) return recog;
     recog = new SR();
     recog.lang = "en-US";
     recog.interimResults = true;
     recog.continuous = false;
     recog.maxAlternatives = 1;
-
-    var finalText = "";
 
     recog.onstart = function () {
       listening = true;
@@ -599,7 +618,17 @@
       think(said);
     };
 
-    try { recog.start(); } catch (e) {}
+    return recog;
+  }
+
+  function startListening() {
+    if (!SR) return;
+    primeMic().then(function () {
+      if (ended) return;
+      ensureRecog();
+      finalText = "";
+      try { recog.start(); } catch (e) { /* already running */ }
+    });
   }
 
   micBtn.addEventListener("click", function () {
@@ -642,6 +671,9 @@
     callView.style.display = "block";
     $("callNote").textContent = "Tip: try “I want to cancel” or “I don't remember booking this.”";
     setState("Connecting…", "");
+    // Ask for the mic once, up front, while she's greeting you — so answering
+    // never triggers a second prompt mid-conversation.
+    primeMic();
     think(null);
   }
 
@@ -654,6 +686,8 @@
     ended = true;
     try { if (recog) recog.stop(); } catch (e) {}
     try { window.speechSynthesis.cancel(); } catch (e) {}
+    if (audioEl) { try { audioEl.pause(); } catch (e) {} audioEl = null; }
+    releaseMic();
     callView.style.display = "none";
     setupView.style.display = "block";
     transcript.innerHTML = "";
