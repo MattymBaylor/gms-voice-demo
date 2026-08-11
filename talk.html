@@ -694,6 +694,18 @@
   /* ---------- call ---------- */
   var LIVE_URL = "https://mattymbaylor.github.io/gms-voice-demo/talk.html";
 
+  // Says out loud where this page is actually running, so a failure caused by
+  // a saved copy or a sandboxed preview identifies itself in one screenshot
+  // instead of three rounds of guessing.
+  function whereAmI() {
+    var o;
+    try { o = window.location.origin; } catch (e) { o = null; }
+    if (!o || o === "null") o = window.location.protocol + "//(no origin)";
+    var framed = false;
+    try { framed = window.self !== window.top; } catch (e) { framed = true; }
+    return o + (framed ? " inside a frame" : "");
+  }
+
   function startCall() {
     hide();
     // Anything that is not a real https page - a copy opened from disk, a
@@ -705,9 +717,9 @@
     try { opaque = (window.origin === "null" || window.location.origin === "null"); }
     catch (e) { opaque = true; }
     if (proto !== "https:" || opaque) {
-      show("err","You're viewing a saved or previewed copy of this page, which can't "
-               + "start a conversation - it has no web address for the service to trust. "
-               + "Open the live version in a browser tab: " + LIVE_URL);
+      show("err","You're viewing a saved or previewed copy of this page (running at "
+               + whereAmI() + "), which can't start a conversation. Open the live "
+               + "version in a browser tab: " + LIVE_URL);
       return;
     }
     if (!window.WebSocket || !navigator.mediaDevices) {
@@ -760,8 +772,9 @@
           text="The demo has hit its daily cap. It resets at midnight UTC.";
         } else if (d.reason==="origin") {
           kind="err";
-          text="This page isn't authorised to start a conversation. If you're viewing "
-             + "a copy of it, use the original link.";
+          text="This page isn't authorised to start a conversation — it's running at "
+             + whereAmI() + ", which isn't the live address. If you're viewing a saved "
+             + "copy or a preview, open " + LIVE_URL + " in a browser tab instead.";
         } else {
           kind="err";
           text="Couldn't reach the voice service just now. Give it a moment and try again.";
