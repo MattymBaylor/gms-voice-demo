@@ -164,6 +164,18 @@
   body.embed .card-shell:before{inset:-24px -16px -14px;filter:blur(22px)}
   body.embed .card{padding:24px}
 
+  /* Unmissable "this isn't real" notice. */
+  .notice{
+    display:flex;gap:10px;align-items:flex-start;
+    background:rgba(255,196,107,.10);border:1px solid rgba(255,196,107,.42);
+    border-left:3px solid var(--warn);
+    border-radius:10px;padding:11px 13px;margin:0 0 20px;
+    font-size:12.6px;line-height:1.5;color:#ffdca6;
+  }
+  .notice b{color:#ffe9c4}
+  .notice .ico{flex:none;font-size:14px;line-height:1.35}
+  .notice-slim{margin:12px 0 0;font-size:11.8px;padding:9px 12px}
+
   .altlink{text-align:center;font-size:12.5px;color:var(--muted);margin:16px 0 0}
   .altlink a{color:var(--accent-2);text-decoration:none;border-bottom:1px solid rgba(92,225,185,.35);font-weight:600}
   .altlink a:hover{border-bottom-color:var(--accent-2)}
@@ -270,6 +282,15 @@
             </div>
           </div>
 
+          <div class="notice">
+            <span class="ico">⚠️</span>
+            <span>
+              <b>Demonstration only.</b> "Quality Home Services" is a fictional company and
+              no appointment is being booked. Nothing is scheduled, nobody is coming to your
+              home, and none of what you enter is saved.
+            </span>
+          </div>
+
           <div class="field">
             <label for="firstName">Your first name</label>
             <input id="firstName" type="text" placeholder="Alex" autocomplete="given-name" />
@@ -354,6 +375,10 @@
           <button type="button" class="mic" id="micBtn" style="display:none">🎤 Tap to answer</button>
           <div class="btn-row" style="margin-top:14px">
             <button type="button" class="btn-ghost" id="endBtn">End call</button>
+          </div>
+          <div class="notice notice-slim">
+            <span class="ico">⚠️</span>
+            <span>Demo only — fictional company, no appointment is being booked.</span>
           </div>
           <div class="fineprint" id="callNote"></div>
         </div>
