@@ -152,6 +152,18 @@
   .divider{display:flex;align-items:center;gap:12px;margin:20px 0 16px;color:var(--muted);font-size:11px;
     text-transform:uppercase;letter-spacing:.13em;font-weight:700}
   .divider:before,.divider:after{content:"";flex:1;height:1px;background:var(--line)}
+  /* ── Embed mode ──────────────────────────────────────────────────────
+     Triggered by ?embed=1 or by being inside an iframe. Strips everything
+     down to the card so it drops into someone else's page cleanly. */
+  body.embed{background:transparent;background-image:none}
+  body.embed .wrap{padding:14px;max-width:560px}
+  body.embed header,
+  body.embed footer,
+  body.embed .hero{display:none}
+  body.embed .grid{grid-template-columns:1fr;gap:0}
+  body.embed .card-shell:before{inset:-24px -16px -14px;filter:blur(22px)}
+  body.embed .card{padding:24px}
+
   .altlink{text-align:center;font-size:12.5px;color:var(--muted);margin:16px 0 0}
   .altlink a{color:var(--accent-2);text-decoration:none;border-bottom:1px solid rgba(92,225,185,.35);font-weight:600}
   .altlink a:hover{border-bottom-color:var(--accent-2)}
@@ -170,7 +182,7 @@
 
   <div class="grid">
 
-    <section>
+    <section class="hero">
       <h1>Don't take my word for it.<br /><span class="grad">Talk to the agent.</span></h1>
       <p class="lede" id="lede">
         This is a real appointment-confirmation agent — the same kind I build for home-services
@@ -378,6 +390,30 @@
   // ─────────────────────────────────────────────────────────────────────
 
   var $ = function (id) { return document.getElementById(id); };
+
+  // ── Embed mode ───────────────────────────────────────────────────────
+  // ?embed=1, or simply being inside an iframe, strips the page down to the
+  // card. Height is posted to the parent so the host can auto-resize.
+  (function embedMode() {
+    var forced = /[?&]embed=1/.test(window.location.search);
+    var framed = false;
+    try { framed = window.self !== window.top; } catch (e) { framed = true; }
+    if (!forced && !framed) return;
+
+    document.body.classList.add("embed");
+
+    var last = 0;
+    function postHeight() {
+      var h = Math.ceil(document.documentElement.scrollHeight);
+      if (h && Math.abs(h - last) > 8) {
+        last = h;
+        try { window.parent.postMessage({ gmsVoiceDemoHeight: h }, "*"); } catch (e) {}
+      }
+    }
+    window.addEventListener("load", postHeight);
+    setInterval(postHeight, 500);
+    postHeight();
+  })();
   var setupView = $("setupView"), callView = $("callView");
   var msg = $("msg"), transcript = $("transcript"), emptyNote = $("emptyNote");
   var micBtn = $("micBtn"), stateLine = $("stateLine"), avatar = $("avatar");
